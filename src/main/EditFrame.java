@@ -7,6 +7,7 @@ package main;
 
 import graphics.EditImagePanel;
 import graphics.ImagePacker;
+import java.awt.Color;
 import java.awt.Frame;
 import javax.swing.ImageIcon;
 
@@ -61,6 +62,12 @@ public class EditFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sokoban problem editor");
+
+        zoomSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                zoomSliderStateChanged(evt);
+            }
+        });
 
         wallIcon.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -197,23 +204,47 @@ public class EditFrame extends javax.swing.JFrame {
 
     private void wallSelected(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_wallSelected
         editPanel.setCurrentSpace(ImagePacker.WALL);
+        
+        resetBackgroundColors();
+        
+        wallLabel.setBackground(Color.lightGray);
     }//GEN-LAST:event_wallSelected
 
     private void freeSelected(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_freeSelected
         editPanel.setCurrentSpace(ImagePacker.FREE);
+        
+        resetBackgroundColors();
+        
+        freeLabel.setBackground(Color.lightGray);
     }//GEN-LAST:event_freeSelected
 
     private void workerSelected(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_workerSelected
         editPanel.setCurrentSpace(ImagePacker.WORKER);
+        
+        resetBackgroundColors();
+        
+        workerLabel.setBackground(Color.lightGray);
     }//GEN-LAST:event_workerSelected
 
     private void goalSelected(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_goalSelected
         editPanel.setCurrentSpace(ImagePacker.GOAL);
+        
+        resetBackgroundColors();
+        
+        goalLabel.setBackground(Color.lightGray);
     }//GEN-LAST:event_goalSelected
 
     private void crateSelected(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_crateSelected
         editPanel.setCurrentSpace(ImagePacker.CRATE);
+        
+        resetBackgroundColors();
+        
+        crateLabel.setBackground(Color.lightGray);
     }//GEN-LAST:event_crateSelected
+
+    private void zoomSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_zoomSliderStateChanged
+        editPanel.resize(zoomSlider.getValue());
+    }//GEN-LAST:event_zoomSliderStateChanged
 
     
     // Class methods
@@ -239,6 +270,20 @@ public class EditFrame extends javax.swing.JFrame {
         workerIcon.setIcon(new ImageIcon(packer.getImage(ImagePacker.WORKER)));
         goalIcon.setIcon(new ImageIcon(packer.getImage(ImagePacker.GOAL)));
         crateIcon.setIcon(new ImageIcon(packer.getImage(ImagePacker.CRATE)));
+
+        wallLabel.setOpaque(true);
+        freeLabel.setOpaque(true);
+        workerLabel.setOpaque(true);
+        goalLabel.setOpaque(true);
+        crateLabel.setOpaque(true);
+    }
+    
+    private void resetBackgroundColors() {
+        wallLabel.setBackground(null);
+        freeLabel.setBackground(null);
+        workerLabel.setBackground(null);
+        goalLabel.setBackground(null);
+        crateLabel.setBackground(null);
     }
     
     

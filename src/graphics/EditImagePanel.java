@@ -44,9 +44,9 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     private int gridHeight;
     
     // zoom of the grid
-    private double zoom = 1.0;
+    private int zoom = 10;
     
-    // default size of a grid tile
+    // default tileSize of a grid tile
     private final int DEFAULT_TILE_SIZE = 5;
     
     // class to store grid tile values and goal locations
@@ -97,8 +97,13 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     /*
         Public methods
     */
-    public void resize() {
+    public void resize(int zoomValue) {
+        zoom = zoomValue;
         
+        gridRectangle.width = DEFAULT_TILE_SIZE * gridWidth * zoom;
+        gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight * zoom;
+        
+        this.repaint();
     }
     
     public void setCurrentSpace(int id) {
@@ -119,14 +124,16 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         // super call
         super.paintComponent(g);
         
+        int tileSize = DEFAULT_TILE_SIZE * zoom;
+        
         // draw vertical lines
         for (int i = 0; i <= gridWidth; i++) {
-            g.drawLine(gridRectangle.x + i * DEFAULT_TILE_SIZE, gridRectangle.y, gridRectangle.x + i * DEFAULT_TILE_SIZE, gridRectangle.y + gridRectangle.height);
+            g.drawLine(gridRectangle.x + i * tileSize, gridRectangle.y, gridRectangle.x + i * tileSize, gridRectangle.y + gridRectangle.height);
         }
         
         // draw horizontal lines
         for (int i = 0; i <= gridHeight; i++) {
-            g.drawLine(gridRectangle.x, gridRectangle.y + i * DEFAULT_TILE_SIZE, gridRectangle.x + gridRectangle.width, gridRectangle.y + i * DEFAULT_TILE_SIZE);
+            g.drawLine(gridRectangle.x, gridRectangle.y + i * tileSize, gridRectangle.x + gridRectangle.width, gridRectangle.y + i * tileSize);
         }
         
         // draw walls and free spaces
@@ -135,7 +142,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
             Position p = calcTilePos(pos);
             
             if (s.type == Space.WALL || s.type == Space.FREE) {
-                g.drawImage(packer.getImage(s.type), p.getX(), p.getY(), DEFAULT_TILE_SIZE + 1, DEFAULT_TILE_SIZE + 1, this);
+                g.drawImage(packer.getImage(s.type), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
             } else {
                 System.err.println("FATAL ERROR: EditImagePanel@paintComponent -> Space on grid has illegal type.");
                 System.exit(1);
@@ -145,22 +152,22 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         // draw goals
         for (Position pos : grid.getGoals()) {
             Position p = calcTilePos(pos);
-            g.drawImage(packer.getImage(ImagePacker.GOAL), p.getX(), p.getY(), DEFAULT_TILE_SIZE + 1, DEFAULT_TILE_SIZE + 1, this);
+            g.drawImage(packer.getImage(ImagePacker.GOAL), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
         }
         
         // draw crates
         for (Position pos : state.getCrates()) {
             Position p = calcTilePos(pos);
             if (grid.isGoal(pos))
-                g.drawImage(packer.getImage(ImagePacker.CRATE_ON_GOAL), p.getX(), p.getY(), DEFAULT_TILE_SIZE + 1, DEFAULT_TILE_SIZE + 1, this);
+                g.drawImage(packer.getImage(ImagePacker.CRATE_ON_GOAL), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
             else
-                g.drawImage(packer.getImage(ImagePacker.CRATE), p.getX(), p.getY(), DEFAULT_TILE_SIZE + 1, DEFAULT_TILE_SIZE + 1, this);
+                g.drawImage(packer.getImage(ImagePacker.CRATE), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
         }
         
         // draw worker
         if (state.getWorker() != null) {
             Position p = calcTilePos(state.getWorker());
-            g.drawImage(packer.getImage(ImagePacker.WORKER), p.getX(), p.getY(), DEFAULT_TILE_SIZE + 1, DEFAULT_TILE_SIZE + 1, this);
+            g.drawImage(packer.getImage(ImagePacker.WORKER), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
         }
     }
     
@@ -173,8 +180,10 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
      * @return drawing position of chosen tile
      */
     private Position calcTilePos(Position pos) {
-        int tileX = gridRectangle.x + (pos.getX() * DEFAULT_TILE_SIZE);
-        int tileY = gridRectangle.y + (pos.getY() * DEFAULT_TILE_SIZE);
+        int tileSize = DEFAULT_TILE_SIZE * zoom;
+        
+        int tileX = gridRectangle.x + (pos.getX() * tileSize);
+        int tileY = gridRectangle.y + (pos.getY() * tileSize);
         
         return new Position(tileX, tileY);
     }
@@ -192,13 +201,15 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         if (x >= gridRectangle.x + gridRectangle.width || y >= gridRectangle.y + gridRectangle.height)
             return null;
         
+        int tileSize = DEFAULT_TILE_SIZE * zoom;
+        
         // x
         int tileX = x - gridRectangle.x;
-        tileX = tileX / DEFAULT_TILE_SIZE;
+        tileX = tileX / tileSize;
         
         // y
         int tileY = y - gridRectangle.y;
-        tileY = tileY / DEFAULT_TILE_SIZE;
+        tileY = tileY / tileSize;
         
         return new Position(tileX, tileY);
     }
@@ -302,7 +313,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     }
     
     /**
-     * Sets the grid width and height and calculates the initial position and drawing size of the grid.
+     * Sets the grid width and height and calculates the initial position and drawing tileSize of the grid.
      * @param width grid width in tiles
      * @param height grid height in tiles
      */
@@ -311,11 +322,11 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         this.gridWidth = width;
         this.gridHeight = height;
         
-        // then we calculate the grid rectangle size and position
+        // then we calculate the grid rectangle tileSize and position
         gridRectangle.x = (int) (this.getWidth() * 0.2);
         gridRectangle.y = (int) (this.getHeight() * 0.2);
-        gridRectangle.width = DEFAULT_TILE_SIZE * gridWidth;
-        gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight;
+        gridRectangle.width = DEFAULT_TILE_SIZE * gridWidth * zoom;
+        gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight * zoom;
     }
     
     
