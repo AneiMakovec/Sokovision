@@ -44,7 +44,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     private int gridHeight;
     
     // zoom of the grid
-    private double zoom = 10.0;
+    private double zoom = 1.0;
     
     // default size of a grid tile
     private final int DEFAULT_TILE_SIZE = 5;
