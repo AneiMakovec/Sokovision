@@ -52,6 +52,13 @@ public class Grid {
             return false;
     }
     
+    public boolean existsWall(Position pos) {
+        if (this.grid.containsKey(pos))
+            return this.grid.get(pos).type == Space.WALL;
+        else
+            return true;
+    }
+    
     public boolean isFree(Position pos) {
         if (this.grid.containsKey(pos))
             return this.grid.get(pos).type == Space.FREE;

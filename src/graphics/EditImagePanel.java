@@ -110,6 +110,14 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         this.currentSpace = id;
     }
     
+    public Grid getGrid() {
+        return grid;
+    }
+    
+    public State getState() {
+        return state;
+    }
+    
 
     
     

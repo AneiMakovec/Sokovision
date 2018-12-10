@@ -1,6 +1,6 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
+ * To change this template saveFile, choose Tools | Templates
  * and open the template in the editor.
  */
 package main;
@@ -9,7 +9,10 @@ import graphics.EditImagePanel;
 import graphics.ImagePacker;
 import java.awt.Color;
 import java.awt.Frame;
+import java.io.File;
+import java.io.IOException;
 import javax.swing.ImageIcon;
+import support.writer.SokobanWriter;
 
 /**
  *
@@ -20,6 +23,7 @@ public class EditFrame extends javax.swing.JFrame {
     private int width;
     private int height;
     private final ImagePacker packer;
+    private File saveFile;
 
     /**
      * Creates new form EditFrame
@@ -30,6 +34,7 @@ public class EditFrame extends javax.swing.JFrame {
         this.width = width;
         this.height = height;
         this.packer = new ImagePacker();
+        this.saveFile = null;
         
         goFullscreen();
         initComponents();
@@ -46,6 +51,8 @@ public class EditFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        selectFileWindow = new javax.swing.JFileChooser();
+        messageWindow = new javax.swing.JOptionPane();
         jSplitPane1 = new javax.swing.JSplitPane();
         resourcesPanel = new javax.swing.JPanel();
         zoomSlider = new javax.swing.JSlider();
@@ -59,6 +66,15 @@ public class EditFrame extends javax.swing.JFrame {
         goalLabel = new javax.swing.JLabel();
         crateIcon = new javax.swing.JLabel();
         crateLabel = new javax.swing.JLabel();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        saveMenu = new javax.swing.JMenuItem();
+        SaveAsMenu = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        exportMenu = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        quitMenu = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sokoban problem editor");
@@ -187,13 +203,53 @@ public class EditFrame extends javax.swing.JFrame {
                 .addGroup(resourcesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(crateIcon)
                     .addComponent(crateLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 157, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 135, Short.MAX_VALUE)
                 .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jSplitPane1.setLeftComponent(resourcesPanel);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
+
+        jMenu1.setText("File");
+
+        saveMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        saveMenu.setText("Save");
+        saveMenu.setToolTipText("Save grid to file.");
+        saveMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveMenuActionPerformed(evt);
+            }
+        });
+        jMenu1.add(saveMenu);
+
+        SaveAsMenu.setText("Save as");
+        SaveAsMenu.setToolTipText("Save in a new file.");
+        SaveAsMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SaveAsMenuActionPerformed(evt);
+            }
+        });
+        jMenu1.add(SaveAsMenu);
+        jMenu1.add(jSeparator1);
+
+        exportMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK));
+        exportMenu.setText("Export");
+        exportMenu.setToolTipText("Export grid to file.");
+        jMenu1.add(exportMenu);
+        jMenu1.add(jSeparator2);
+
+        quitMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
+        quitMenu.setText("Quit");
+        quitMenu.setToolTipText("Quit the application.");
+        jMenu1.add(quitMenu);
+
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Edit");
+        jMenuBar1.add(jMenu2);
+
+        setJMenuBar(jMenuBar1);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -246,6 +302,46 @@ public class EditFrame extends javax.swing.JFrame {
         editPanel.resize(zoomSlider.getValue());
     }//GEN-LAST:event_zoomSliderStateChanged
 
+    private void saveMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuActionPerformed
+        if (saveFile == null) {
+            selectSaveFile();
+        }
+        
+        if (saveFile != null) {
+            try {
+                saveFile.createNewFile();
+            } catch (IOException e) {
+                System.out.println("ERROR: EditFrame@saveMenuActionPerformed - cannot create new save file.");
+            }
+            
+            if (saveFile.exists()) {
+                SokobanWriter sw = new SokobanWriter(saveFile);
+                if (sw.isEnabled()) {
+                    sw.write(width, height, editPanel.getGrid(), editPanel.getState());
+                }
+            }
+        }
+    }//GEN-LAST:event_saveMenuActionPerformed
+
+    private void SaveAsMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveAsMenuActionPerformed
+        selectSaveFile();
+        
+        if (saveFile != null) {
+            try {
+                saveFile.createNewFile();
+            } catch (IOException e) {
+                System.out.println("ERROR: EditFrame@saveAsMenuActionPerformed - cannot create new save file.");
+            }
+            
+            if (saveFile.exists()) {
+                SokobanWriter sw = new SokobanWriter(saveFile);
+                if (sw.isEnabled()) {
+                    sw.write(width, height, editPanel.getGrid(), editPanel.getState());
+                }
+            }
+        }
+    }//GEN-LAST:event_SaveAsMenuActionPerformed
+
     
     // Class methods
     
@@ -286,20 +382,44 @@ public class EditFrame extends javax.swing.JFrame {
         crateLabel.setBackground(null);
     }
     
+    private void selectSaveFile() {
+        int retVal = selectFileWindow.showOpenDialog(this);
+        
+        if (retVal == javax.swing.JFileChooser.APPROVE_OPTION) {
+            saveFile = selectFileWindow.getSelectedFile();
+
+            if (!saveFile.getName().endsWith(".txt")) {
+                saveFile = null;
+                messageWindow.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    }
+    
     
     // End class methods
     
     
     private EditImagePanel editPanel;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem SaveAsMenu;
     private javax.swing.JLabel crateIcon;
     private javax.swing.JLabel crateLabel;
+    private javax.swing.JMenuItem exportMenu;
     private javax.swing.JLabel freeIcon;
     private javax.swing.JLabel freeLabel;
     private javax.swing.JLabel goalIcon;
     private javax.swing.JLabel goalLabel;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JOptionPane messageWindow;
+    private javax.swing.JMenuItem quitMenu;
     private javax.swing.JPanel resourcesPanel;
+    private javax.swing.JMenuItem saveMenu;
+    private javax.swing.JFileChooser selectFileWindow;
     private javax.swing.JLabel wallIcon;
     private javax.swing.JLabel wallLabel;
     private javax.swing.JLabel workerIcon;

@@ -12,14 +12,14 @@ import java.io.File;
  *
  * @author anei
  */
-public class EntryFrame extends javax.swing.JFrame {
+public class Sokovision extends javax.swing.JFrame {
     
     private File selectedFile;
 
     /**
      * Creates new form EntryFrame
      */
-    public EntryFrame() {
+    public Sokovision() {
         this.selectedFile = null;
         initComponents();
     }
@@ -51,7 +51,6 @@ public class EntryFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sokovision");
-        setPreferredSize(new java.awt.Dimension(400, 265));
         setResizable(false);
 
         jPanel2.setPreferredSize(new java.awt.Dimension(400, 265));
@@ -268,20 +267,21 @@ public class EntryFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(EntryFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Sokovision.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(EntryFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Sokovision.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(EntryFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Sokovision.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(EntryFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Sokovision.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new EntryFrame().setVisible(true);
+                new Sokovision().setVisible(true);
             }
         });
     }
