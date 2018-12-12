@@ -76,6 +76,11 @@ public class State {
         return state;
     }
     
+    public void clear() {
+        this.crates.clear();
+        this.worker = null;
+    }
+    
     
     @Override
     public boolean equals(Object o) {

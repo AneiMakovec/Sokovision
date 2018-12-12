@@ -106,6 +106,16 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         this.repaint();
     }
     
+    public void resizeGrid(int width, int height) {
+        this.gridWidth = width;
+        this.gridHeight = height;
+        
+        gridRectangle.width = DEFAULT_TILE_SIZE * gridWidth * zoom;
+        gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight * zoom;
+        
+        this.repaint();
+    }
+    
     public void setCurrentSpace(int id) {
         this.currentSpace = id;
     }
@@ -114,8 +124,51 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         return grid;
     }
     
-    public State getState() {
+    public State getGameState() {
         return state;
+    }
+    
+    public boolean isCrateGoalNumOk() {
+        if (grid.getGoals().isEmpty() || state.getCrates().isEmpty())
+            return false;
+        
+        return grid.getGoals().size() == state.getCrates().size();
+    }
+    
+    public boolean isWorkerPresent() {
+        return state.getWorker() != null;
+    }
+    
+    public boolean isWallConnected() {
+        // check upper wall
+        if (!checkWallConnectionUp())
+            return false;
+        
+        // check right wall
+        if (!checkWallConnectionRight())
+            return false;
+        
+        // check down wall
+        if (!checkWallConnectionDown())
+            return false;
+        
+        // check left wall
+        return checkWallConnectionLeft();
+    }
+    
+    public void optimizeGrid() {
+        Position pos;
+        for (int y = 0; y < gridHeight; y++) {
+            for (int x = 0; x < gridWidth; x++) {
+                pos = new Position(x, y);
+                
+                if (grid.existsWall(pos.getUp()) && grid.existsWall(pos.getRight()) && grid.existsWall(pos.getDown()) && grid.existsWall(pos.getLeft())) {
+                    grid.removeSpace(pos);
+                }
+            }
+        }
+        
+        this.repaint();
     }
     
 
@@ -337,6 +390,106 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight * zoom;
     }
     
+    
+    private boolean checkWallConnectionUp() {
+        Position pos;
+        int y = 0;
+        for (int x = 0; x < gridWidth; x++) {
+            pos = new Position(x, y);
+            
+            while (y < gridHeight && grid.isVoid(pos)) {
+                y++;
+                pos.setY(y);
+            }
+            
+            if (y == gridHeight) {
+                y = 0;
+                continue;
+            }
+                
+            if (!grid.isWall(pos))
+                return false;
+            
+            y = 0;
+        }
+        
+        return true;
+    }
+    
+    private boolean checkWallConnectionRight() {
+        Position pos;
+        int x = gridWidth - 1;
+        for (int y = 0; y < gridHeight; y++) {
+            pos = new Position(x, y);
+            
+            while (x >= 0 && grid.isVoid(pos)) {
+                x--;
+                pos.setX(x);
+            }
+            
+            if (x < 0) {
+                x = gridWidth - 1;
+                continue;
+            }
+            
+            if (!grid.isWall(pos))
+                return false;
+            
+            x = gridWidth - 1;
+        }
+        
+        return true;
+    }
+    
+    private boolean checkWallConnectionDown() {
+        Position pos;
+        int y = gridHeight - 1;
+        for (int x = 0; x < gridWidth; x++) {
+            pos = new Position(x, y);
+            
+            while (y >= 0 && grid.isVoid(pos)) {
+                y--;
+                pos.setY(y);
+            }
+            
+            if (y < 0) {
+                y = gridHeight - 1;
+                continue;
+            }
+                
+            if (!grid.isWall(pos))
+                return false;
+            
+            y = gridHeight - 1;
+        }
+        
+        return true;
+    }
+    
+    private boolean checkWallConnectionLeft() {
+        Position pos;
+        int x = 0;
+        for (int y = 0; y < gridHeight; y++) {
+            pos = new Position(x, y);
+            
+            while (x < gridWidth && grid.isVoid(pos)) {
+                x++;
+                pos.setX(x);
+            }
+            
+            if (x == gridWidth) {
+                x = 0;
+                continue;
+            }
+            
+            if (!grid.isWall(pos))
+                return false;
+            
+            x = 0;
+        }
+        
+        return true;
+    }
     
     
     /*

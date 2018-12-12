@@ -6,8 +6,6 @@
     </Component>
     <Component class="javax.swing.JFileChooser" name="selectFileChooser">
     </Component>
-    <Component class="javax.swing.JOptionPane" name="messagePane">
-    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>

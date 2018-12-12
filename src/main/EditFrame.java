@@ -12,6 +12,8 @@ import java.awt.Frame;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import support.reader.SokobanReader;
 import support.writer.SokobanWriter;
 
 /**
@@ -52,7 +54,6 @@ public class EditFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         selectFileWindow = new javax.swing.JFileChooser();
-        messageWindow = new javax.swing.JOptionPane();
         jSplitPane1 = new javax.swing.JSplitPane();
         resourcesPanel = new javax.swing.JPanel();
         zoomSlider = new javax.swing.JSlider();
@@ -72,6 +73,7 @@ public class EditFrame extends javax.swing.JFrame {
         SaveAsMenu = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         exportMenu = new javax.swing.JMenuItem();
+        importMenu = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         quitMenu = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
@@ -236,7 +238,21 @@ public class EditFrame extends javax.swing.JFrame {
         exportMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK));
         exportMenu.setText("Export");
         exportMenu.setToolTipText("Export grid to file.");
+        exportMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exportMenuActionPerformed(evt);
+            }
+        });
         jMenu1.add(exportMenu);
+
+        importMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
+        importMenu.setText("Import");
+        importMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                importMenuActionPerformed(evt);
+            }
+        });
+        jMenu1.add(importMenu);
         jMenu1.add(jSeparator2);
 
         quitMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
@@ -303,44 +319,49 @@ public class EditFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_zoomSliderStateChanged
 
     private void saveMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveMenuActionPerformed
-        if (saveFile == null) {
-            selectSaveFile();
-        }
-        
-        if (saveFile != null) {
-            try {
-                saveFile.createNewFile();
-            } catch (IOException e) {
-                System.out.println("ERROR: EditFrame@saveMenuActionPerformed - cannot create new save file.");
-            }
+        if (canSaveGrid()) {
+            editPanel.optimizeGrid();
             
-            if (saveFile.exists()) {
-                SokobanWriter sw = new SokobanWriter(saveFile);
-                if (sw.isEnabled()) {
-                    sw.write(width, height, editPanel.getGrid(), editPanel.getState());
-                }
+            if (saveFile == null) {
+                saveFile = selectFile();
             }
+
+            saveToFile(saveFile);
         }
     }//GEN-LAST:event_saveMenuActionPerformed
 
     private void SaveAsMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveAsMenuActionPerformed
-        selectSaveFile();
-        
-        if (saveFile != null) {
-            try {
-                saveFile.createNewFile();
-            } catch (IOException e) {
-                System.out.println("ERROR: EditFrame@saveAsMenuActionPerformed - cannot create new save file.");
-            }
-            
-            if (saveFile.exists()) {
-                SokobanWriter sw = new SokobanWriter(saveFile);
-                if (sw.isEnabled()) {
-                    sw.write(width, height, editPanel.getGrid(), editPanel.getState());
-                }
-            }
+        if (canSaveGrid()) {
+            editPanel.optimizeGrid();
+            saveFile = selectFile();
+            saveToFile(saveFile);
         }
     }//GEN-LAST:event_SaveAsMenuActionPerformed
+
+    private void exportMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportMenuActionPerformed
+        if (canSaveGrid()) {
+            editPanel.optimizeGrid();
+            File file = selectFile();
+            saveToFile(file);
+        }
+    }//GEN-LAST:event_exportMenuActionPerformed
+
+    private void importMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importMenuActionPerformed
+        int retVal = JOptionPane.showOptionDialog(this, "Do you want to import grid from file?", "Confirm import", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+        
+        if (retVal == 0) {
+            // read the grid
+            saveFile = selectFile();
+            SokobanReader reader = new SokobanReader(saveFile);
+            
+            if (reader.isEnabled()) {
+                reader.read(editPanel.getGrid(), editPanel.getGameState());
+                
+                // resize the display grid
+                editPanel.resizeGrid(reader.getWidth(), reader.getHeight());
+            }
+        } 
+    }//GEN-LAST:event_importMenuActionPerformed
 
     
     // Class methods
@@ -382,17 +403,58 @@ public class EditFrame extends javax.swing.JFrame {
         crateLabel.setBackground(null);
     }
     
-    private void selectSaveFile() {
+    private File selectFile() {
         int retVal = selectFileWindow.showOpenDialog(this);
         
+        File sFile = null;
+        
         if (retVal == javax.swing.JFileChooser.APPROVE_OPTION) {
-            saveFile = selectFileWindow.getSelectedFile();
+            sFile = selectFileWindow.getSelectedFile();
 
-            if (!saveFile.getName().endsWith(".txt")) {
-                saveFile = null;
-                messageWindow.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            if (!sFile.getName().endsWith(".skvi")) {
+                sFile = null;
+                JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             }
         }
+        
+        return sFile;
+    }
+    
+    private void saveToFile(File sFile) {
+        if (sFile != null) {
+            try {
+                sFile.createNewFile();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Cannot create new save file.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                System.out.println("ERROR: EditFrame@saveAsMenuActionPerformed - cannot create new save file.");
+            }
+            
+            if (sFile.exists()) {
+                SokobanWriter sw = new SokobanWriter(sFile);
+                if (sw.isEnabled()) {
+                    sw.write(width, height, editPanel.getGrid(), editPanel.getGameState());
+                }
+            }
+        }
+    }
+    
+    private boolean canSaveGrid() {
+        if (!editPanel.isWallConnected()) {
+            JOptionPane.showMessageDialog(this, "The outer walls must be connected!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        if (!editPanel.isWorkerPresent()) {
+            JOptionPane.showMessageDialog(this, "There is no worker!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        if (!editPanel.isCrateGoalNumOk()) {
+            JOptionPane.showMessageDialog(this, "The number of crates and goals must be the same and also higher than 1!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        return true;
     }
     
     
@@ -409,13 +471,13 @@ public class EditFrame extends javax.swing.JFrame {
     private javax.swing.JLabel freeLabel;
     private javax.swing.JLabel goalIcon;
     private javax.swing.JLabel goalLabel;
+    private javax.swing.JMenuItem importMenu;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JOptionPane messageWindow;
     private javax.swing.JMenuItem quitMenu;
     private javax.swing.JPanel resourcesPanel;
     private javax.swing.JMenuItem saveMenu;

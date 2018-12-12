@@ -66,6 +66,10 @@ public class Grid {
             return false;
     }
     
+    public boolean isVoid(Position pos) {
+        return !grid.containsKey(pos);
+    }
+    
     
     /*
         Goals methods
@@ -84,5 +88,14 @@ public class Grid {
     
     public Set<Position> getGoals() {
         return this.goals;
+    }
+    
+    
+    /*
+        Class methods
+    */
+    public void clear() {
+        this.grid.clear();
+        this.goals.clear();
     }
 }

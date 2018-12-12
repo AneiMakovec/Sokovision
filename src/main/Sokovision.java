@@ -6,6 +6,7 @@
 package main;
 
 import java.io.File;
+import javax.swing.JOptionPane;
 
 
 /**
@@ -35,7 +36,6 @@ public class Sokovision extends javax.swing.JFrame {
 
         modeButtonGroup = new javax.swing.ButtonGroup();
         selectFileChooser = new javax.swing.JFileChooser();
-        messagePane = new javax.swing.JOptionPane();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         createNewProblemRButton = new javax.swing.JRadioButton();
@@ -214,7 +214,7 @@ public class Sokovision extends javax.swing.JFrame {
             if (!selectedFile.getName().endsWith(".txt")) {
                 selectedFile = null;
                 selectFileTextField.setText("");
-                messagePane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             } else {
                 selectFileTextField.setText(selectedFile.getAbsolutePath());
             }
@@ -235,18 +235,18 @@ public class Sokovision extends javax.swing.JFrame {
                     this.setVisible(false);
                     new EditFrame(width, height).setVisible(true);
                 } catch (NumberFormatException e) {
-                    messagePane.showMessageDialog(this, "Input parameters need to be numbers.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Input parameters need to be numbers.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                     widthTextField.setText("");
                     heightTextField.setText("");
                 }
             } else {
-                messagePane.showMessageDialog(this, "Both width and height parameters must be set.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Both width and height parameters must be set.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             }
         } else if (importProblemRButton.isSelected()) {
             // import problem from file mode
             // TODO
         } else {
-            messagePane.showMessageDialog(this, "Please choose operating mode.");
+            JOptionPane.showMessageDialog(this, "Please choose operating mode.");
         }
     }//GEN-LAST:event_okButtonActionPerformed
 
@@ -294,7 +294,6 @@ public class Sokovision extends javax.swing.JFrame {
     private javax.swing.JRadioButton importProblemRButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JOptionPane messagePane;
     private javax.swing.ButtonGroup modeButtonGroup;
     private javax.swing.JButton okButton;
     private javax.swing.JButton selectFileButton;

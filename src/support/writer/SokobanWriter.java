@@ -35,21 +35,129 @@ public class SokobanWriter {
     }
     
     public void write(int width, int height, Grid grid, State state) {
+        // preprocess the grid to find the leftmost wall
+        Position pos;
+        int leftmost = width;
+        int x = 0, y;
+        for (y = 0; y < height; y++) {
+            pos = new Position(x, y);
+            
+            while (x < width && grid.isVoid(pos)) {
+                x++;
+                pos.setX(x);
+            }
+            
+            if (x == width) {
+                x = 0;
+                continue;
+            }
+            
+            if (grid.isWall(pos)) {
+                if (x < leftmost) {
+                    leftmost = x;
+                    
+                    if (leftmost == 0)
+                        break;
+                }
+            }
+            
+            x = 0;
+        }
+        
+        // preprocess the grid to find the rightmost wall
+        int rightmost = 0;
+        x = width - 1;
+        for (y = 0; y < height; y++) {
+            pos = new Position(x, y);
+            
+            while (x >= 0 && grid.isVoid(pos)) {
+                x--;
+                pos.setX(x);
+            }
+            
+            if (x < 0) {
+                x = width - 1;
+                continue;
+            }
+            
+            if (grid.isWall(pos)) {
+                if (x > rightmost) {
+                    rightmost = x;
+                    
+                    if (rightmost == width - 1)
+                        break;
+                }
+            }
+            
+            x = width - 1;
+        }
+        
+        // preprocess the grid to find the upper wall
+        int upper = height;
+        y = 0;
+        for (x = 0; x < width; x++) {
+            pos = new Position(x, y);
+            
+            while (y < height && grid.isVoid(pos)) {
+                y++;
+                pos.setY(y);
+            }
+            
+            if (y == height) {
+                y = 0;
+                continue;
+            }
+            
+            if (grid.isWall(pos)) {
+                if (y < upper) {
+                    upper = y;
+                    
+                    if (upper == 0)
+                        break;
+                }
+            }
+            
+            y = 0;
+        }
+        
+        // preprocess the grid to find the lower wall
+        int lower = 0;
+        y = height - 1;
+        for (x = 0; x < width; x++) {
+            pos = new Position(x, y);
+            
+            while (y >= 0 && grid.isVoid(pos)) {
+                y--;
+                pos.setY(y);
+            }
+            
+            if (y < 0) {
+                y = height - 1;
+                continue;
+            }
+            
+            if (grid.isWall(pos)) {
+                if (y > lower) {
+                    lower = y;
+                    
+                    if (lower == height - 1)
+                        break;
+                }
+            }
+            
+            y = height - 1;
+        }
+        
         // build a string of characters rapresenting the tiles
         StringBuilder sb = new StringBuilder();
-        Position pos;
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
+        
+        for (int i = upper; i <= lower; i++) {
+            for (int j = leftmost; j <= rightmost; j++) {
                 pos = new Position(j, i);
 
                 // check if wall
                 if (grid.isWall(pos)) {
-                    // check if wall is necesarry
-                    if (grid.existsWall(pos.getUp()) && grid.existsWall(pos.getRight()) && grid.existsWall(pos.getDown()) && grid.existsWall(pos.getLeft())) {
-                        sb.append(" ");
-                    } else {
-                        sb.append("#");
-                    }
+                    sb.append("#");
                 } else if (grid.isFree(pos)) {
                     // check if goal
                     if (grid.isGoal(pos)) {
@@ -73,11 +181,16 @@ public class SokobanWriter {
                     } else {
                         sb.append(" ");
                     }
+                // no tile here
+                } else if (grid.isVoid(pos)) {
+                    sb.append("o");
                 }
             }
             
             sb.append("\n");
         }
+        
+        sb.deleteCharAt(sb.length() - 1);
         
         // write the string of tiles to file
         writer.print(sb.toString());
