@@ -128,6 +128,14 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         return state;
     }
     
+    public int getGridWidth() {
+        return this.gridWidth;
+    }
+    
+    public int getGridHeight() {
+        return this.gridHeight;
+    }
+    
     public boolean isCrateGoalNumOk() {
         if (grid.getGoals().isEmpty() || state.getCrates().isEmpty())
             return false;

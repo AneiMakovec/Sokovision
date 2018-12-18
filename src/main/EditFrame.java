@@ -5,6 +5,7 @@
  */
 package main;
 
+import game.Game;
 import graphics.EditImagePanel;
 import graphics.ImagePacker;
 import java.awt.Color;
@@ -359,6 +360,11 @@ public class EditFrame extends javax.swing.JFrame {
                 
                 // resize the display grid
                 editPanel.resizeGrid(reader.getWidth(), reader.getHeight());
+                
+                Game game = new Game(editPanel.getGrid());
+                game.printState(editPanel.getGameState(), true);
+                
+                System.out.println("Grid width: " + reader.getWidth() + ", grid height: " + reader.getHeight());
             }
         } 
     }//GEN-LAST:event_importMenuActionPerformed
@@ -432,7 +438,7 @@ public class EditFrame extends javax.swing.JFrame {
             if (sFile.exists()) {
                 SokobanWriter sw = new SokobanWriter(sFile);
                 if (sw.isEnabled()) {
-                    sw.write(width, height, editPanel.getGrid(), editPanel.getGameState());
+                    sw.write(editPanel.getGridWidth(), editPanel.getGridHeight(), editPanel.getGrid(), editPanel.getGameState());
                 }
             }
         }

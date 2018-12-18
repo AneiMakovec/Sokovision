@@ -26,6 +26,10 @@ public class Game {
     public Game() {
         this.grid = new Grid();
     }
+    
+    public Game(Grid grid) {
+        this.grid = grid;
+    }
 
     public Set<Position> getGoals() {
         return this.grid.getGoals();
