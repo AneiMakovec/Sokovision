@@ -48,12 +48,16 @@ public class Sokovision extends javax.swing.JFrame {
         selectFileButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
+        importProblemEditRButton = new javax.swing.JRadioButton();
+        selectFileEditField = new javax.swing.JTextField();
+        selectFileEditButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sokovision");
+        setPreferredSize(new java.awt.Dimension(550, 320));
         setResizable(false);
 
-        jPanel2.setPreferredSize(new java.awt.Dimension(400, 265));
+        jPanel2.setPreferredSize(new java.awt.Dimension(550, 280));
 
         jLabel1.setFont(new java.awt.Font("Lucida Grande", 1, 18)); // NOI18N
         jLabel1.setText("Choose operating mode:");
@@ -77,7 +81,7 @@ public class Sokovision extends javax.swing.JFrame {
         heightTextField.setEnabled(false);
 
         modeButtonGroup.add(importProblemRButton);
-        importProblemRButton.setText("import problem from file");
+        importProblemRButton.setText("import problem to solve");
         importProblemRButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 importProblemRButtonActionPerformed(evt);
@@ -108,42 +112,60 @@ public class Sokovision extends javax.swing.JFrame {
             }
         });
 
+        modeButtonGroup.add(importProblemEditRButton);
+        importProblemEditRButton.setText("import problem to edit");
+        importProblemEditRButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                importProblemEditRButtonActionPerformed(evt);
+            }
+        });
+
+        selectFileEditField.setEnabled(false);
+
+        selectFileEditButton.setText("Choose file");
+        selectFileEditButton.setEnabled(false);
+        selectFileEditButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectFileButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jLabel1)
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
-                                .addGap(35, 35, 35)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(widthLabel)
-                                    .addComponent(heightLabel))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(heightTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
-                                    .addComponent(widthTextField))))
-                        .addGap(0, 310, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(selectFileTextField)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(selectFileButton))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(createNewProblemRButton)
-                                    .addComponent(importProblemRButton))
-                                .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(okButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelButton)))
+                        .addComponent(cancelButton))
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jLabel1)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                            .addGap(35, 35, 35)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(widthLabel)
+                                .addComponent(heightLabel))
+                            .addGap(18, 18, 18)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(heightTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
+                                .addComponent(widthTextField))))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                                .addComponent(selectFileEditField, javax.swing.GroupLayout.PREFERRED_SIZE, 423, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(selectFileEditButton, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(importProblemEditRButton)
+                            .addComponent(createNewProblemRButton)
+                            .addComponent(importProblemRButton)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(selectFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 423, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(selectFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -161,17 +183,23 @@ public class Sokovision extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(heightLabel)
                     .addComponent(heightTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(importProblemEditRButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(selectFileEditField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(selectFileEditButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(importProblemRButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(selectFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(selectFileButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cancelButton)
                     .addComponent(okButton))
-                .addContainerGap(70, Short.MAX_VALUE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
@@ -189,7 +217,13 @@ public class Sokovision extends javax.swing.JFrame {
         heightLabel.setEnabled(true);
         heightTextField.setEnabled(true);
         
+        selectedFile = null;
+        
+        selectFileEditButton.setEnabled(false);
+        selectFileEditField.setText("");
+        
         selectFileButton.setEnabled(false);
+        selectFileTextField.setText("");
     }//GEN-LAST:event_createNewProblemRButtonActionPerformed
 
     private void importProblemRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importProblemRButtonActionPerformed
@@ -197,6 +231,11 @@ public class Sokovision extends javax.swing.JFrame {
         widthTextField.setEnabled(false);
         heightLabel.setEnabled(false);
         heightTextField.setEnabled(false);
+        
+        selectedFile = null;
+        
+        selectFileEditButton.setEnabled(false);
+        selectFileEditField.setText("");
         
         selectFileButton.setEnabled(true);
     }//GEN-LAST:event_importProblemRButtonActionPerformed
@@ -211,12 +250,15 @@ public class Sokovision extends javax.swing.JFrame {
         if (retVal == javax.swing.JFileChooser.APPROVE_OPTION) {
             selectedFile = selectFileChooser.getSelectedFile();
             
-            if (!selectedFile.getName().endsWith(".txt")) {
+            if (!selectedFile.getName().endsWith(".skvi")) {
                 selectedFile = null;
                 selectFileTextField.setText("");
-                JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.skvi'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             } else {
-                selectFileTextField.setText(selectedFile.getAbsolutePath());
+                if (importProblemRButton.isSelected())
+                    selectFileTextField.setText(selectedFile.getAbsolutePath());
+                else if (importProblemEditRButton.isSelected())
+                    selectFileEditField.setText(selectedFile.getAbsolutePath());
             }
         }
     }//GEN-LAST:event_selectFileButtonActionPerformed
@@ -224,7 +266,7 @@ public class Sokovision extends javax.swing.JFrame {
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         // check which operating mode is selected
         if (createNewProblemRButton.isSelected()) {
-            // create new problem mode
+            // create new problem
             // check if parameters are set
             if (!widthTextField.getText().equals("") && !heightTextField.getText().equals("")) {
                 // check if input parameters are numbers
@@ -243,12 +285,41 @@ public class Sokovision extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Both width and height parameters must be set.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             }
         } else if (importProblemRButton.isSelected()) {
-            // import problem from file mode
-            // TODO
+            // solve mode
+            if (selectedFile != null) {
+                this.setVisible(false);
+                new VisualFrame(selectedFile).setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "You must select a file to import from.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            }
+        } else if (importProblemEditRButton.isSelected()) {
+            // import problem to editor
+            if (selectedFile != null) {
+                this.setVisible(false);
+                EditFrame ef = new EditFrame(0, 0);
+                ef.importFileToEdit(selectedFile);
+                ef.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "You must select a file to import from.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            }
         } else {
             JOptionPane.showMessageDialog(this, "Please choose operating mode.");
         }
     }//GEN-LAST:event_okButtonActionPerformed
+
+    private void importProblemEditRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importProblemEditRButtonActionPerformed
+        widthLabel.setEnabled(false);
+        widthTextField.setEnabled(false);
+        heightLabel.setEnabled(false);
+        heightTextField.setEnabled(false);
+        
+        selectedFile = null;
+        
+        selectFileEditButton.setEnabled(true);
+        
+        selectFileButton.setEnabled(false);
+        selectFileTextField.setText("");
+    }//GEN-LAST:event_importProblemEditRButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -291,6 +362,7 @@ public class Sokovision extends javax.swing.JFrame {
     private javax.swing.JRadioButton createNewProblemRButton;
     private javax.swing.JLabel heightLabel;
     private javax.swing.JTextField heightTextField;
+    private javax.swing.JRadioButton importProblemEditRButton;
     private javax.swing.JRadioButton importProblemRButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
@@ -298,6 +370,8 @@ public class Sokovision extends javax.swing.JFrame {
     private javax.swing.JButton okButton;
     private javax.swing.JButton selectFileButton;
     private javax.swing.JFileChooser selectFileChooser;
+    private javax.swing.JButton selectFileEditButton;
+    private javax.swing.JTextField selectFileEditField;
     private javax.swing.JTextField selectFileTextField;
     private javax.swing.JLabel widthLabel;
     private javax.swing.JTextField widthTextField;

@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package graphics;
+package graphics.editor;
 
+import graphics.support.ImagePacker;
+import graphics.support.GridRectangle;
 import grid.Grid;
 import grid.Position;
 import grid.Space;
@@ -14,21 +16,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JPanel;
-import support.KeyboardManager;
-
-class Rectangle {
-    public int x;
-    public int y;
-    public int width;
-    public int height;
-    
-    public Rectangle(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-}
 
 /**
  *
@@ -37,7 +24,7 @@ class Rectangle {
 public class EditImagePanel extends JPanel implements MouseListener, MouseMotionListener {
     
     // rectangle in which the grid is displayed
-    private final Rectangle gridRectangle;
+    private final GridRectangle gridRectangle;
     
     // the width and height of the grid in tiles
     private int gridWidth;
@@ -65,7 +52,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     private int mouseX, mouseY;
     
     public EditImagePanel(int width, int height, ImagePacker packer) {
-        this.gridRectangle = new Rectangle(0, 0, 0, 0);
+        this.gridRectangle = new GridRectangle(0, 0, 0, 0);
         this.grid = new Grid();
         this.state = new State();
         this.mouseX = 0;

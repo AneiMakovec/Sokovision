@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package graphics;
+package graphics.visualization;
 
+import graphics.support.ImagePacker;
 import java.awt.Graphics;
 import javax.swing.JPanel;
 
@@ -12,7 +13,7 @@ import javax.swing.JPanel;
  *
  * @author anei
  */
-public class DisplayImagePanel extends JPanel {
+public class DisplayStatePanel extends JPanel {
     
     private final ImagePacker packer;
     private final int imageSize = 32;
@@ -21,8 +22,12 @@ public class DisplayImagePanel extends JPanel {
      * Creates new instance of class DisplayImagePanel.
      * @param packer the image packer to connect to the display panel
      */
-    public DisplayImagePanel(ImagePacker packer) {
+    public DisplayStatePanel(ImagePacker packer) {
         this.packer = packer;
+    }
+    
+    public DisplayStatePanel() {
+        packer = null;
     }
     
     

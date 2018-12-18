@@ -5,9 +5,8 @@
  */
 package main;
 
-import game.Game;
-import graphics.EditImagePanel;
-import graphics.ImagePacker;
+import graphics.editor.EditImagePanel;
+import graphics.support.ImagePacker;
 import java.awt.Color;
 import java.awt.Frame;
 import java.io.File;
@@ -39,7 +38,7 @@ public class EditFrame extends javax.swing.JFrame {
         this.packer = new ImagePacker();
         this.saveFile = null;
         
-        goFullscreen();
+        //goFullscreen();
         initComponents();
         initEditPanel();
         initParameters();
@@ -81,6 +80,7 @@ public class EditFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sokoban problem editor");
+        setPreferredSize(new java.awt.Dimension(1000, 600));
 
         zoomSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -353,27 +353,20 @@ public class EditFrame extends javax.swing.JFrame {
         if (retVal == 0) {
             // read the grid
             saveFile = selectFile();
-            SokobanReader reader = new SokobanReader(saveFile);
-            
-            if (reader.isEnabled()) {
-                reader.read(editPanel.getGrid(), editPanel.getGameState());
-                
-                // resize the display grid
-                editPanel.resizeGrid(reader.getWidth(), reader.getHeight());
-                
-                Game game = new Game(editPanel.getGrid());
-                game.printState(editPanel.getGameState(), true);
-                
-                System.out.println("Grid width: " + reader.getWidth() + ", grid height: " + reader.getHeight());
-            }
-        } 
+            importFromFile(saveFile);
+        }
     }//GEN-LAST:event_importMenuActionPerformed
 
     
     // Class methods
     
-    // Private
+    // Public
+    public void importFileToEdit(File file) {
+        saveFile = file;
+        importFromFile(file);
+    }
     
+    // Private
     private void goFullscreen() {
         setExtendedState(Frame.MAXIMIZED_BOTH);
     }
@@ -463,6 +456,19 @@ public class EditFrame extends javax.swing.JFrame {
         return true;
     }
     
+    private void importFromFile(File file) {
+        SokobanReader reader = new SokobanReader(file);
+            
+        if (reader.isEnabled()) {
+            reader.read(editPanel.getGrid(), editPanel.getGameState());
+            
+            this.width = reader.getWidth();
+            this.height = reader.getHeight();
+                
+            // resize the display grid
+            editPanel.resizeGrid(this.width, this.height);
+        }
+    }
     
     // End class methods
     
