@@ -11,17 +11,26 @@ import grid.Grid;
 import grid.Position;
 import grid.Space;
 import game.State;
+import java.awt.BorderLayout;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JToolBar;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  *
  * @author anei
  */
-public class EditImagePanel extends JPanel implements MouseListener, MouseMotionListener {
+public class EditImagePanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener, ChangeListener {
     
     // rectangle in which the grid is displayed
     private final GridRectangle gridRectangle;
@@ -32,6 +41,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     
     // zoom of the grid
     private int zoom = 10;
+    private JSlider zoomSlider;
     
     // default tileSize of a grid tile
     private final int DEFAULT_TILE_SIZE = 5;
@@ -51,7 +61,17 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     // mouse coordinates during dragging
     private int mouseX, mouseY;
     
+    
+    // toolbar buttons click values
+    static final private String WALL = "wall";
+    static final private String FREE = "free";
+    static final private String CRATE = "crate";
+    static final private String WORKER = "worker";
+    static final private String GOAL = "goal";
+    
+    
     public EditImagePanel(int width, int height, ImagePacker packer) {
+        super(new BorderLayout());
         this.gridRectangle = new GridRectangle(0, 0, 0, 0);
         this.grid = new Grid();
         this.state = new State();
@@ -59,6 +79,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         this.mouseY = 0;
         this.packer = packer;
         this.currentSpace = -1;
+        initToolbar();
         initListeners();
         setParameters(width, height);
     }
@@ -77,6 +98,13 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         
         // keyboard listener
         //KeyboardManager.init();
+    }
+    
+    private void initToolbar() {
+        JToolBar toolBar = new JToolBar("Tiles");
+        addButtons(toolBar);
+        addSlider(toolBar);
+        add(toolBar, BorderLayout.PAGE_START);
     }
     
     
@@ -101,10 +129,6 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight * zoom;
         
         this.repaint();
-    }
-    
-    public void setCurrentSpace(int id) {
-        this.currentSpace = id;
     }
     
     public Grid getGrid() {
@@ -487,6 +511,57 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     }
     
     
+    
+    // Toolbar setup methods
+    protected void addButtons(JToolBar toolBar) {
+        JButton button = null;
+        
+        // wall button
+        button = addButton(ImagePacker.WALL, WALL, "Wall tile");
+        toolBar.add(button);
+        
+        // free button
+        button = addButton(ImagePacker.FREE, FREE, "Empty tile");
+        toolBar.add(button);
+        
+        // goal button
+        button = addButton(ImagePacker.GOAL, GOAL, "Goal tile");
+        toolBar.add(button);
+        
+        // crate button
+        button = addButton(ImagePacker.CRATE, CRATE, "Crate tile");
+        toolBar.add(button);
+        
+        // worker button
+        button = addButton(ImagePacker.WORKER, WORKER, "Worker tile");
+        toolBar.add(button);
+    }
+    
+    protected JButton addButton(int imageId, String action, String toolTipText) {
+        JButton button = new JButton();
+        button.setActionCommand(action);
+        button.setToolTipText(toolTipText);
+        button.addActionListener(this);
+        button.setIcon(new ImageIcon(packer.getImage(imageId)));
+        
+        return button;
+    }
+    
+    protected void addSlider(JToolBar toolBar) {
+        toolBar.add(new javax.swing.JLabel("     Zoom:   1x "));
+        
+        zoomSlider = new JSlider();
+        zoomSlider.setMaximum(10);
+        zoomSlider.setMinimum(1);
+        zoomSlider.setValue(10);
+        zoomSlider.setPreferredSize(new java.awt.Dimension(100, 20));
+        zoomSlider.addChangeListener(this);
+        toolBar.add(zoomSlider);
+        
+        toolBar.add(new javax.swing.JLabel(" 10x"));
+    }
+    
+    
     /*
         MouseListener implemented methods
     */
@@ -544,4 +619,42 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     
     @Override
     public void mouseMoved(MouseEvent e) {}
+    
+    
+    
+    /*
+        ActionListener implemented methods
+    */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+        switch (command) {
+            case WALL:
+                currentSpace = ImagePacker.WALL;
+                break;
+            case FREE:
+                currentSpace = ImagePacker.FREE;
+                break;
+            case GOAL:
+                currentSpace = ImagePacker.GOAL;
+                break;
+            case CRATE:
+                currentSpace = ImagePacker.CRATE;
+                break;
+            case WORKER:
+                currentSpace = ImagePacker.WORKER;
+                break;
+            default:
+                break;
+        }
+    }
+    
+    
+    /*
+        ChangeListener implemented methods
+    */
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        resize(zoomSlider.getValue());
+    }
 }

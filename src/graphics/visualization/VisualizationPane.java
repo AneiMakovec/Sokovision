@@ -8,13 +8,12 @@ package graphics.visualization;
 import java.awt.Color;
 import java.awt.GridLayout;
 import javax.swing.BorderFactory;
-import javax.swing.JInternalFrame;
 
 /**
  *
  * @author anei
  */
-public class VisualizationPane extends JInternalFrame {
+public class VisualizationPane extends javax.swing.JInternalFrame {
     
     public VisualizationPane() {
         initComponents();
