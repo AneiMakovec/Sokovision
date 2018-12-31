@@ -288,7 +288,7 @@ public class Sokovision extends javax.swing.JFrame {
             // solve mode
             if (selectedFile != null) {
                 this.setVisible(false);
-                new VisualFrame(selectedFile).setVisible(true);
+                new VisualizationFrame(selectedFile).setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "You must select a file to import from.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             }

@@ -7,6 +7,7 @@ package graphics.visualization;
 
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.io.File;
 import javax.swing.BorderFactory;
 
 /**
@@ -15,7 +16,14 @@ import javax.swing.BorderFactory;
  */
 public class VisualizationPane extends javax.swing.JInternalFrame {
     
-    public VisualizationPane() {
+    private File problemFile;
+    private int solverId;
+    private String solverName;
+    
+    public VisualizationPane(int solverId, File problemFile) {
+        this.problemFile = problemFile;
+        this.solverId = solverId;
+        initSolverName();
         initComponents();
     }
     
@@ -28,7 +36,7 @@ public class VisualizationPane extends javax.swing.JInternalFrame {
         
         // set up
         setDefaultCloseOperation(javax.swing.JInternalFrame.DISPOSE_ON_CLOSE);
-        setTitle("TODO");
+        setTitle(solverName + ": ~" +problemFile.getName());
         setPreferredSize(new java.awt.Dimension(400, 400));
         setResizable(true);
         
@@ -51,6 +59,26 @@ public class VisualizationPane extends javax.swing.JInternalFrame {
         add(statisticsPanel);
         
         pack();
+    }
+    
+    
+    private void initSolverName() {
+        switch (solverId) {
+            case main.VisualizationFrame.SOLVER_BFS:
+                solverName = "BFS";
+                break;
+            case main.VisualizationFrame.SOLVER_DFS:
+                solverName = "DFS";
+                break;
+            case main.VisualizationFrame.SOLVER_A:
+                solverName = "A*";
+                break;
+            case main.VisualizationFrame.SOLVER_IDA:
+                solverName = "IDA*";
+                break;
+            default:
+                break;
+        }
     }
     
     
