@@ -514,7 +514,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     
     // Toolbar setup methods
     protected void addButtons(JToolBar toolBar) {
-        JButton button = null;
+        JButton button;
         
         // wall button
         button = addButton(ImagePacker.WALL, WALL, "Wall tile");
@@ -560,6 +560,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         
         toolBar.add(new javax.swing.JLabel(" 10x"));
     }
+    // End toolbar setup methods
     
     
     /*

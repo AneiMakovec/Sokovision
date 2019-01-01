@@ -25,6 +25,15 @@ public class ImagePacker {
     public static int WORKER = 3;
     public static int CRATE = 4;
     public static int CRATE_ON_GOAL = 5;
+    public static int NEW_FILE = 6;
+    public static int NEW_PROJECT = 7;
+    public static int NEW_SOLVER = 8;
+    public static int NEXT_STATE = 9;
+    public static int PREV_STATE = 10;
+    public static int PAUSE = 11;
+    public static int RESUME = 12;
+    public static int START = 13;
+    public static int STOP = 14;
     
     public ImagePacker() {
         map = new HashMap<>();
@@ -37,6 +46,15 @@ public class ImagePacker {
             BufferedImage workerImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/worker.png"));
             BufferedImage crateOnFloorImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/crate.png"));
             BufferedImage crateOnGoalImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/crate_on_goal.png"));
+            BufferedImage newFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/new_file.png"));
+            BufferedImage newProjectImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/new_project.png"));
+            BufferedImage newSolverImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/new_solver.png"));
+            BufferedImage nextStateImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/next_state.png"));
+            BufferedImage prevStateImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/prev_state.png"));
+            BufferedImage pauseImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/pause.png"));
+            BufferedImage resumeImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/resume.png"));
+            BufferedImage startImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/start.png"));
+            BufferedImage stopImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/stop.png"));
             
             // create mappings for images
             map.put(WALL, wallImage);
@@ -45,6 +63,15 @@ public class ImagePacker {
             map.put(WORKER, workerImage);
             map.put(CRATE, crateOnFloorImage);
             map.put(CRATE_ON_GOAL, crateOnGoalImage);
+            map.put(NEW_FILE, newFileImage);
+            map.put(NEW_PROJECT, newProjectImage);
+            map.put(NEW_SOLVER, newSolverImage);
+            map.put(NEXT_STATE, nextStateImage);
+            map.put(PREV_STATE, prevStateImage);
+            map.put(PAUSE, pauseImage);
+            map.put(RESUME, resumeImage);
+            map.put(START, startImage);
+            map.put(STOP, stopImage);
         } catch (IOException e) {
             System.err.println("FATAL ERROR: ImagePacker@constructor -> Could not find and load tile images.");
             System.exit(1);
