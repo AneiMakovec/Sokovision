@@ -34,6 +34,11 @@ public class ImagePacker {
     public static int RESUME = 12;
     public static int START = 13;
     public static int STOP = 14;
+    public static int PROJECT_FILE = 15;
+    public static int PROBLEM_FILE = 16;
+    public static int SOLVER_FILE = 17;
+    public static int STAT_FILE = 18;
+    public static int CSV_FILE = 19;
     
     public ImagePacker() {
         map = new HashMap<>();
@@ -55,6 +60,11 @@ public class ImagePacker {
             BufferedImage resumeImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/resume.png"));
             BufferedImage startImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/start.png"));
             BufferedImage stopImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/stop.png"));
+            BufferedImage projectFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/project.png"));
+            BufferedImage problemFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/problem_file.png"));
+            BufferedImage solverFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/solver_file.png"));
+            BufferedImage statFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/stat_file.png"));
+            BufferedImage csvFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/csv_file.png"));
             
             // create mappings for images
             map.put(WALL, wallImage);
@@ -72,6 +82,11 @@ public class ImagePacker {
             map.put(RESUME, resumeImage);
             map.put(START, startImage);
             map.put(STOP, stopImage);
+            map.put(PROJECT_FILE, projectFileImage);
+            map.put(PROBLEM_FILE, problemFileImage);
+            map.put(SOLVER_FILE, solverFileImage);
+            map.put(STAT_FILE, statFileImage);
+            map.put(CSV_FILE, csvFileImage);
         } catch (IOException e) {
             System.err.println("FATAL ERROR: ImagePacker@constructor -> Could not find and load tile images.");
             System.exit(1);

@@ -5,10 +5,26 @@
  */
 package graphics.ui;
 
+import java.awt.Dimension;
+import javax.swing.JPanel;
+
 /**
  *
  * @author anei
  */
-public class SolveSettingsPanel extends javax.swing.JPanel {
+public class SolveSettingsPanel extends JPanel {
     
+    
+    public SolveSettingsPanel() {
+        initComponents();
+    }
+    
+    
+    
+    
+    
+    @SuppressWarnings("unchecked")
+    private void initComponents() {
+        setPreferredSize(new Dimension(300, 300));
+    }
 }
