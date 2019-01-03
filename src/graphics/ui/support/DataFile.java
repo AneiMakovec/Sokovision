@@ -19,7 +19,9 @@ public class DataFile {
     public static final int SOLVER = 2;
     public static final int STAT = 3;
     public static final int CSV = 4;
-    public static final int DIRECTORY = 4;
+    public static final int DIRECTORY = 5;
+    public static final int UNKNOWN = 6;
+    
     
     protected int fileType;
     protected Icon   icon;
@@ -34,6 +36,14 @@ public class DataFile {
     
     public Icon getIcon() { 
         return icon;
+    }
+    
+    public int getFileType() {
+        return fileType;
+    }
+    
+    public File getDataFile() {
+        return dataFile;
     }
 
     @Override

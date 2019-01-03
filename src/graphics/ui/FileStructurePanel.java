@@ -9,9 +9,8 @@ import graphics.support.ImagePacker;
 import graphics.ui.support.DataFile;
 import graphics.ui.support.FileTreeCellRenderer;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.io.File;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -40,10 +39,10 @@ public class FileStructurePanel extends JPanel {
      * @param packer Image buffer.
      * @param treeNodeListener Action listener to be added to tree nodes.
      */
-    public FileStructurePanel(String dirPath, ImagePacker packer, ActionListener treeNodeListener) {
+    public FileStructurePanel(String dirPath, ImagePacker packer, MouseListener treeNodeListener) {
         this.dirPath = dirPath;
         this.packer = packer;
-        initComponents();
+        initComponents(treeNodeListener);
     }
     
     
@@ -51,7 +50,7 @@ public class FileStructurePanel extends JPanel {
      * Initializes the components.
      */
     @SuppressWarnings("unchecked")
-    private void initComponents() {
+    private void initComponents(MouseListener listener) {
         setPreferredSize(new Dimension(300, 500));
         
         dirTree = new JTree();
@@ -65,6 +64,7 @@ public class FileStructurePanel extends JPanel {
         dirTree.setCellRenderer(renderer);
         dirTree.setRootVisible(false);
         dirTree.setShowsRootHandles(true);
+        dirTree.addMouseListener(listener);
         
         JScrollPane scrollPane = new JScrollPane(dirTree);
         scrollPane.setPreferredSize(getPreferredSize());
@@ -72,8 +72,7 @@ public class FileStructurePanel extends JPanel {
         
         updateDirTree();
     }
-    
-    
+     
     private void updateDirTree() {
         DefaultTreeModel model = (DefaultTreeModel) dirTree.getModel();
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
@@ -112,12 +111,18 @@ public class FileStructurePanel extends JPanel {
                 } else if (file.getName().endsWith(".csv")) {
                     child = new DefaultMutableTreeNode(new DataFile(file, DataFile.CSV, new ImageIcon(packer.getImage(ImagePacker.CSV_FILE))));
                 } else {
-                    child = null;
+                    child = new DefaultMutableTreeNode(new DataFile(file, DataFile.UNKNOWN, new ImageIcon(packer.getImage(ImagePacker.UNKNOWN_FILE))));;
                 }
+                
+                
                 
                 model.insertNodeInto(child, root, root.getChildCount());
             }
         }
+    }
+    
+    public JTree getDirTree() {
+        return dirTree;
     }
     
     

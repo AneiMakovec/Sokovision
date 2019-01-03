@@ -18,13 +18,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.File;
+import java.io.IOException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import main.MainFrame;
+import support.reader.SokobanReader;
+import support.writer.SokobanWriter;
 
 /**
  *
@@ -61,6 +67,17 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     // mouse coordinates during dragging
     private int mouseX, mouseY;
     
+    // file from which the grid was loaded
+    private final File file;
+    
+    // tells if the current file was edited
+    private boolean edited;
+    
+    // index of tab
+    private int tabIndex;
+    
+    // pointer to main frame
+    private MainFrame parent;
     
     // toolbar buttons click values
     static final private String WALL = "wall";
@@ -79,6 +96,46 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         this.mouseY = 0;
         this.packer = packer;
         this.currentSpace = -1;
+        this.file = null;
+        this.edited = false;
+        initToolbar();
+        initListeners();
+        setParameters(width, height);
+    }
+    
+    public EditImagePanel(MainFrame parent, File problemFile, int tabIndex, ImagePacker packer) {
+        super(new BorderLayout());
+        this.gridRectangle = new GridRectangle(0, 0, 0, 0);
+        this.grid = new Grid();
+        this.state = new State();
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.packer = packer;
+        this.currentSpace = -1;
+        this.file = problemFile;
+        this.edited = false;
+        this.parent = parent;
+        this.tabIndex = tabIndex;
+        initToolbar();
+        initListeners();
+        setParameters(0, 0);
+        
+        importFromFile(file);
+    }
+    
+    public EditImagePanel(MainFrame parent, File file, int tabIndex, int width, int height, ImagePacker packer) {
+        super(new BorderLayout());
+        this.gridRectangle = new GridRectangle(0, 0, 0, 0);
+        this.grid = new Grid();
+        this.state = new State();
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.packer = packer;
+        this.currentSpace = -1;
+        this.file = file;
+        this.edited = false;
+        this.parent = parent;
+        this.tabIndex = tabIndex;
         initToolbar();
         initListeners();
         setParameters(width, height);
@@ -105,6 +162,37 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         addButtons(toolBar);
         addSlider(toolBar);
         add(toolBar, BorderLayout.PAGE_START);
+    }
+    
+    private void importFromFile(File file) {
+        SokobanReader reader = new SokobanReader(file);
+        
+        // if read successfuly
+        if (reader.isEnabled()) {
+            reader.read(grid, state);
+                
+            // resize the display grid
+            resizeGrid(reader.getWidth(), reader.getHeight());
+        }
+    }
+    
+    private boolean canSaveGrid() {
+        if (!isWallConnected()) {
+            JOptionPane.showMessageDialog(this, "The outer walls must be connected!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        if (!isWorkerPresent()) {
+            JOptionPane.showMessageDialog(this, "There is no worker!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        if (!isCrateGoalNumOk()) {
+            JOptionPane.showMessageDialog(this, "The number of crates and goals must be the same and also higher than 1!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
+        return true;
     }
     
     
@@ -189,6 +277,35 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         
         this.repaint();
     }
+    
+    public boolean wasEdited() {
+        return edited;
+    }
+    
+    public String getFileName() {
+        return file.getName();
+    }
+    
+    public void save() {
+        if (edited && canSaveGrid()) {
+            SokobanWriter sw = new SokobanWriter(file);
+            if (sw.isEnabled()) {
+                sw.write(gridWidth, gridHeight, grid, state);
+                edited = false;
+                parent.stateChanged(tabIndex);
+            }
+        }
+    }
+    
+    public void export(File sFile) {
+        if (canSaveGrid()) {
+            SokobanWriter sw = new SokobanWriter(sFile);
+            if (sw.isEnabled()) {
+                sw.write(gridWidth, gridHeight, grid, state);
+            }
+        }
+    }
+
     
 
     
@@ -317,6 +434,10 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
      * @param e mouse event used to draw
      */
     private void draw(MouseEvent e) {
+        // grid was edited
+        edited = true;
+        parent.stateChanged(tabIndex);
+        
         // pressed mouse button
         int button = e.getButton();
 
