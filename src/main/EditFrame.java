@@ -5,7 +5,7 @@
  */
 package main;
 
-import graphics.editor.EditImagePanel;
+import graphics.editor.EditProblemPanel;
 import graphics.support.ImagePacker;
 import java.awt.Frame;
 import java.io.File;
@@ -42,7 +42,7 @@ public class EditFrame extends javax.swing.JFrame {
     
     @SuppressWarnings("unchecked")
     private void initComponents() {
-        editPanel = new EditImagePanel(width, height, packer);
+        editPanel = new EditProblemPanel(width, height, packer);
         selectFileWindow = new javax.swing.JFileChooser();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
@@ -246,7 +246,7 @@ public class EditFrame extends javax.swing.JFrame {
     
     
     // Variable declaration
-    private EditImagePanel editPanel;
+    private EditProblemPanel editPanel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenuItem saveMenuItem;

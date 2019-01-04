@@ -19,7 +19,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
-import java.io.IOException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -36,7 +35,7 @@ import support.writer.SokobanWriter;
  *
  * @author anei
  */
-public class EditImagePanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener, ChangeListener {
+public class EditProblemPanel extends JPanel implements MouseListener, MouseMotionListener, ActionListener, ChangeListener {
     
     // rectangle in which the grid is displayed
     private final GridRectangle gridRectangle;
@@ -87,7 +86,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
     static final private String GOAL = "goal";
     
     
-    public EditImagePanel(int width, int height, ImagePacker packer) {
+    public EditProblemPanel(int width, int height, ImagePacker packer) {
         super(new BorderLayout());
         this.gridRectangle = new GridRectangle(0, 0, 0, 0);
         this.grid = new Grid();
@@ -103,7 +102,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         setParameters(width, height);
     }
     
-    public EditImagePanel(MainFrame parent, File problemFile, int tabIndex, ImagePacker packer) {
+    public EditProblemPanel(MainFrame parent, File problemFile, int tabIndex, ImagePacker packer) {
         super(new BorderLayout());
         this.gridRectangle = new GridRectangle(0, 0, 0, 0);
         this.grid = new Grid();
@@ -123,7 +122,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         importFromFile(file);
     }
     
-    public EditImagePanel(MainFrame parent, File file, int tabIndex, int width, int height, ImagePacker packer) {
+    public EditProblemPanel(MainFrame parent, File problemFile, int tabIndex, int width, int height, ImagePacker packer) {
         super(new BorderLayout());
         this.gridRectangle = new GridRectangle(0, 0, 0, 0);
         this.grid = new Grid();
@@ -132,7 +131,7 @@ public class EditImagePanel extends JPanel implements MouseListener, MouseMotion
         this.mouseY = 0;
         this.packer = packer;
         this.currentSpace = -1;
-        this.file = file;
+        this.file = problemFile;
         this.edited = false;
         this.parent = parent;
         this.tabIndex = tabIndex;

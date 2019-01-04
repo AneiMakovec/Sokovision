@@ -5,7 +5,7 @@
  */
 package main;
 
-import graphics.editor.EditImagePanel;
+import graphics.editor.EditProblemPanel;
 import graphics.support.ImagePacker;
 import graphics.ui.FileStructurePanel;
 import graphics.ui.SolveSettingsPanel;
@@ -17,17 +17,21 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -40,6 +44,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -66,6 +71,10 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     
     
     private final String PROJECTS_DIR_PATH = System.getProperty("user.home") + File.separator + "SokovisionProjects";
+    
+    private final String PROBLEMS_SUBDIR_PATH = File.separator + "Problems";
+    private final String SOLVERS_SUBDIR_PATH = File.separator + "Solvers";
+    private final String STATS_SUBDIR_PATH = File.separator + "Statistics";
 
     /**
      * Creates new frame MainFrame
@@ -82,7 +91,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         menuBar = new JMenuBar();
         toolBar = new JToolBar("Command toolbar");
         displayPane = new JTabbedPane();
-        fileStructPane = new FileStructurePanel(PROJECTS_DIR_PATH, packer, this);
+        fileStructPane = new FileStructurePanel(this, PROJECTS_DIR_PATH, packer);
         solveSettingsPane = new SolveSettingsPanel();
         selectFileWindow = new JFileChooser();
 
@@ -103,7 +112,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         newFileMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
         newFileMenuItem.setToolTipText("Create new problem file.");
         newFileMenuItem.addActionListener((java.awt.event.ActionEvent evt) -> {
-            // TODO
+            createNewProblemFile();
         });
         fileMenu.add(newFileMenuItem);
         
@@ -112,7 +121,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         newSolverMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         newSolverMenuItem.setToolTipText("Create new solver.");
         newSolverMenuItem.addActionListener((java.awt.event.ActionEvent evt) -> {
-            // TODO
+            createNewSolver();
         });
         fileMenu.add(newSolverMenuItem);
         
@@ -121,7 +130,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         newProjectMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         newProjectMenuItem.setToolTipText("Create new project.");
         newProjectMenuItem.addActionListener((java.awt.event.ActionEvent evt) -> {
-            // TODO
+            createNewProject();
         });
         fileMenu.add(newProjectMenuItem);
         
@@ -215,14 +224,23 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         
         // new file button
         button = addButton(ImagePacker.NEW_FILE, NEW_FILE, "New file");
+        button.addActionListener((java.awt.event.ActionEvent evt) -> {
+            createNewProblemFile();
+        });
         toolBar.add(button);
         
         // new project button
         button = addButton(ImagePacker.NEW_PROJECT, NEW_PROJECT, "New project");
+        button.addActionListener((java.awt.event.ActionEvent evt) -> {
+            createNewProject();
+        });
         toolBar.add(button);
         
         // new solver button
         button = addButton(ImagePacker.NEW_SOLVER, NEW_SOLVER, "New solver");
+        button.addActionListener((java.awt.event.ActionEvent evt) -> {
+            createNewSolver();
+        });
         toolBar.add(button);
         
         // start solving button
@@ -265,7 +283,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         // check if a panel with the same name doesn't already exist
         if (displayPane.indexOfTab(file.getName()) == -1) {
             // add edit panel as tabbed pane
-            EditImagePanel editPanel = new EditImagePanel(this, file, displayPane.getTabCount(), packer);
+            EditProblemPanel editPanel = new EditProblemPanel(this, file, displayPane.getTabCount(), packer);
             displayPane.addTab(file.getName(), editPanel);
 
             // get index of edit panel's tab
@@ -307,8 +325,8 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     private void save() {
         Component comp = displayPane.getSelectedComponent();
         if (comp != null) {
-            if (comp instanceof EditImagePanel) {
-                EditImagePanel editPanel = (EditImagePanel) comp;
+            if (comp instanceof EditProblemPanel) {
+                EditProblemPanel editPanel = (EditProblemPanel) comp;
                 editPanel.save();
             }
         }
@@ -319,7 +337,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         if (comp != null) {
             File selectedFile = selectFile(); 
             
-            if (comp instanceof EditImagePanel) {
+            if (comp instanceof EditProblemPanel) {
                 if (!selectedFile.getName().endsWith(".txt")) {
                     JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                 } else {
@@ -330,7 +348,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
                             return;
                         }
                     }
-                    EditImagePanel editPanel = (EditImagePanel) comp;
+                    EditProblemPanel editPanel = (EditProblemPanel) comp;
                     editPanel.export(selectedFile);
                 }
             }
@@ -349,15 +367,114 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         return sFile;
     }
     
-    private void createNewProblemFile() {
+    public void createNewProblemFile() {
+        // init dialog component
+        JTextField nameInput = new JTextField(30);
+        JTextField xInput = new JTextField(5);
+        JTextField yInput = new JTextField(5);
+        JTextField projectName = new JTextField(30);
         
+        JPanel inputPanel = new JPanel(new GridLayout(7, 2));
+        inputPanel.setPreferredSize(new Dimension(300, 200));
+        inputPanel.add(new JLabel("Name: "));
+        inputPanel.add(nameInput);
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(new JLabel("Width: "));
+        inputPanel.add(xInput);
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(new JLabel("Height: "));
+        inputPanel.add(yInput);
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(new JLabel("Project: "));
+        inputPanel.add(projectName);
+        
+        // get last clicked tree path
+        TreePath path = fileStructPane.getClickedTreePath();
+        if (path != null) {
+            // find the project dir in path
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DataFile data = (DataFile) node.getUserObject();
+            
+            projectName.setText(data.toString());
+            
+            // ask for input
+            int result = JOptionPane.showConfirmDialog(this, inputPanel, "New problem file", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                // retrieve input
+                int width = Integer.parseInt(xInput.getText());
+                int height = Integer.parseInt(yInput.getText());
+                String name = nameInput.getText() + ".txt";
+
+                // check if input parameters are acceptable
+                if (width < 5 || height < 5) {
+                    JOptionPane.showMessageDialog(this, "Problem must be at least 5 tiles wide and 5 tiles high.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                } else {
+                    // build empty grid
+                    StringBuilder sb = new StringBuilder();
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            sb.append("o");
+                        }
+
+                        if (y < height - 1)
+                            sb.append("\n");
+                    }
+
+                    // construct path to new file
+                    File newFile = new File(data.getDataFile().getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + name);
+                    
+                    try {
+                        // check if file with this name already exists
+                        if (newFile.exists()) {
+                            JOptionPane.showMessageDialog(this, "File " + name + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        } else {
+                            // create new empty file
+                            newFile.createNewFile();
+                            
+                            // write empty grid to file
+                            BufferedWriter writer = new BufferedWriter(new FileWriter(newFile));
+                            writer.write(sb.toString());
+                            writer.flush();
+                            writer.close();
+                            
+                            // update file structure
+                            fileStructPane.updateDirTree();
+                        }
+                    } catch (IOException e) {
+                        // if error while writing, delete file
+                        newFile.delete();
+                    }
+                }
+            }
+        }
     }
     
     private void createNewProject() {
+        String projectName = JOptionPane.showInputDialog(this, "Project name:");
         
+        // create project directory
+        File file = new File(PROJECTS_DIR_PATH + File.separator + projectName);
+        file.mkdirs();
+        
+        // create problems sub-directory
+        file = new File(PROJECTS_DIR_PATH + File.separator + projectName + PROBLEMS_SUBDIR_PATH);
+        file.mkdirs();
+        
+        // create solvers sub-directory
+        file = new File(PROJECTS_DIR_PATH + File.separator + projectName + SOLVERS_SUBDIR_PATH);
+        file.mkdirs();
+        
+        // create stats sub-directory
+        file = new File(PROJECTS_DIR_PATH + File.separator + projectName + STATS_SUBDIR_PATH);
+        file.mkdirs();
+        
+        fileStructPane.updateDirTree();
     }
     
-    private void createNewSolver() {
+    public void createNewSolver() {
         
     }
     
@@ -369,7 +486,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         EDIT PANEL STATE CHANGED METHOD
     */
     public void stateChanged(int tabIndex) {
-        EditImagePanel editPanel = (EditImagePanel) displayPane.getComponentAt(tabIndex);
+        EditProblemPanel editPanel = (EditProblemPanel) displayPane.getComponentAt(tabIndex);
         Tab tab = (Tab) displayPane.getTabComponentAt(tabIndex);
         Font font = tab.getTitle().getFont();
         
@@ -381,6 +498,50 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     }
     
     
+    /*
+        FILE STRUCTURE PANEL DELETE METHOD
+    */
+    public void delete() {
+        TreePath path = fileStructPane.getClickedTreePath();
+        if (path != null) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DataFile data = (DataFile) node.getUserObject();
+
+            if (data.getFileType() == DataFile.DIRECTORY) {
+                JOptionPane.showMessageDialog(this, "Directory " + data.toString() + " cannot be deleted.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            } else {
+                int retVal = JOptionPane.showOptionDialog(this, "Do you want to delete " + data.toString() + "?", "Confirm delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+
+                if (retVal == 0) {
+                    // delete the file
+                    if (data.getDataFile().isDirectory())
+                        deleteRecursively(data.getDataFile());
+                    else 
+                        data.getDataFile().delete();
+
+                    // update file tree
+                    fileStructPane.updateDirTree();
+                }
+            }
+        }
+    }
+    
+    private void deleteRecursively(File file) {
+        for (File child : file.listFiles()) {
+            if (child == null) {
+                System.out.println("Child is NULL.");
+            }
+            if (child.isDirectory()) {
+                deleteRecursively(child);
+            } else {
+                child.delete();
+            }
+        }
+
+        file.delete();
+    }
+    
+    
     
     /*
         ACTION EVENT LISTENER METHODS
@@ -389,11 +550,19 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().contains("Tab")) {
             int tabIndex = Integer.parseInt(e.getActionCommand().replaceAll("Tab", ""));
-            
-            //int tabIndex = displayPane.indexOfTab(e.getActionCommand());
+ 
             if (tabIndex >= 0) {
+                // check if closing edit problem panel and if yes, save file
+                Component comp = displayPane.getComponentAt(tabIndex);
+                if (comp instanceof EditProblemPanel) {
+                    EditProblemPanel editPanel = (EditProblemPanel) comp;
+                    editPanel.save();
+                }
+                
+                // then remove the panel
                 displayPane.removeTabAt(tabIndex);
                 
+                // also remove this action listener from source button
                 JButton closeButton = (JButton) e.getSource();
                 closeButton.removeActionListener(this);
             }
@@ -409,11 +578,13 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
             JTree dirTree = fileStructPane.getDirTree();
             TreePath path = dirTree.getPathForLocation(e.getX(), e.getY());
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-            DataFile file = (DataFile) node.getUserObject();
-            
-            if (file.getFileType() == DataFile.PROBLEM) {
-                addEditImagePanelToDisplayPane(file.getDataFile());
+            if (path != null) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                DataFile file = (DataFile) node.getUserObject();
+
+                if (file.getFileType() == DataFile.PROBLEM) {
+                    addEditImagePanelToDisplayPane(file.getDataFile());
+                }
             }
         }
     }
