@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -63,8 +62,8 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     static final private String NEW_FILE = "new_file";
     static final private String NEW_PROJECT = "new_project";
     static final private String NEW_SOLVER = "new_solver";
-    static final private String NEXT_STATE = "next_state";
-    static final private String PREV_STATE = "prev_state";
+    static final private String NEXT_STATE = "next_solver_state";
+    static final private String PREV_STATE = "prev_solver_state";
     static final private String START = "start";
     static final private String STOP = "stop";
     static final private String PAUSE = "pause";
@@ -239,49 +238,42 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         
         // new file button
         button = addButton(ImagePacker.NEW_FILE, NEW_FILE, "New file");
-        button.addActionListener(this);
         toolBar.add(button);
         
         // new project button
         button = addButton(ImagePacker.NEW_PROJECT, NEW_PROJECT, "New project");
-        button.addActionListener(this);
         toolBar.add(button);
         
         // new solver button
         button = addButton(ImagePacker.NEW_SOLVER, NEW_SOLVER, "New solver");
-        button.addActionListener(this);
         toolBar.add(button);
         
         // solving control buttons
+        toolBar.addSeparator();
         
         // start solving button
         toolBarStartButton = addButton(ImagePacker.START, START, "Start solving");
         toolBarStartButton.setEnabled(false);
-        toolBarStartButton.addActionListener(this);
         toolBar.add(toolBarStartButton);
         
         // stop solving button
         toolBarStopButton = addButton(ImagePacker.STOP, STOP, "Stop solving");
         toolBarStopButton.setEnabled(false);
-        toolBarStopButton.addActionListener(this);
         toolBar.add(toolBarStopButton);
         
         // pause solving button
         toolBarPauseResumeButton = addButton(ImagePacker.PAUSE, PAUSE, "Pause solving");
         toolBarPauseResumeButton.setEnabled(false);
-        toolBarPauseResumeButton.addActionListener(this);
         toolBar.add(toolBarPauseResumeButton);
         
         // previous state button
         toolBarPrevButton = addButton(ImagePacker.PREV_STATE, PREV_STATE, "Previous state");
         toolBarPrevButton.setEnabled(false);
-        toolBarPrevButton.addActionListener(this);
         toolBar.add(toolBarPrevButton);
         
         // next state button
         toolBarNextButton = addButton(ImagePacker.NEXT_STATE, NEXT_STATE, "Next state");
         toolBarNextButton.setEnabled(false);
-        toolBarNextButton.addActionListener(this);
         toolBar.add(toolBarNextButton);
     }// </editor-fold>
     
@@ -321,13 +313,26 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
 
             // set the tab
             displayPane.setTabComponentAt(index, tab);
+            
+            // if the panel added is a visualization panel also enable the tool bar buttons
+            if (panel instanceof VisualizationPanel) {
+                toolBarStartButton.setEnabled(true);
+                toolBarNextButton.setEnabled(true);
+                toolBarPrevButton.setEnabled(true);
+            }
         }
     }// </editor-fold>
     
+    /**
+     * Loads a visualization panel from a solver file.
+     * @param path Tree path on which the selected solver file is located.
+     * @param solverData The data file of chosen solver.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Load Solver Visualizator">
     private void loadSolverVisualizator(TreePath path, DataFile solverData) {
         // ask for input
         String problemName = JOptionPane.showInputDialog(this, "Name of problem file to solve:");
-                    
+        
         if (problemName != null) {
             // check if input value is acceptable
             if (problemName.length() == 0) {
@@ -336,12 +341,12 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 if (!problemName.endsWith(".txt"))
                     problemName = problemName.concat(".txt");
             }
-
-             // find the project in which the solver is located
+            
+            // find the project in which the solver is located
             DefaultMutableTreeNode projectNode = fileStructPane.getProjectTreeNodeOnPath(path);
             if (projectNode != null) {
                 DataFile projectData = (DataFile) projectNode.getUserObject();
-
+                
                 // find the problem file specified by the user and check if it exists
                 File problemFile = new File(projectData.getDataFile().getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + problemName);
                 if (!problemFile.exists())
@@ -351,6 +356,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
+//</editor-fold>
     
     
     
@@ -660,14 +666,25 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().contains("Tab")) {
+            // closing a tab
+            
+            // get tab index
             int tabIndex = Integer.parseInt(e.getActionCommand().replaceAll("Tab", ""));
  
             if (tabIndex >= 0) {
-                // check if closing edit problem panel and if yes, save file
+                // check closing tab type
                 Component comp = displayPane.getComponentAt(tabIndex);
                 if (comp instanceof EditProblemPanel) {
+                    // if edit problem file, save progress
                     EditProblemPanel editPanel = (EditProblemPanel) comp;
                     editPanel.save();
+                } else if (comp instanceof VisualizationPanel) {
+                    // if visualization panel, disable tool bar buttons
+                    toolBarStartButton.setEnabled(false);
+                    toolBarStopButton.setEnabled(false);
+                    toolBarPauseResumeButton.setEnabled(false);
+                    toolBarNextButton.setEnabled(false);
+                    toolBarPrevButton.setEnabled(false);
                 }
                 
                 // then remove the panel

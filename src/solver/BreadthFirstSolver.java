@@ -6,6 +6,7 @@
 package solver;
 
 import grid.Grid;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -24,6 +25,7 @@ public class BreadthFirstSolver implements Solver {
     
     private Problem problem;
     private Node state;
+    private Node treeState;
     private Node startState;
     private StatCollector statCollector;
     
@@ -33,7 +35,8 @@ public class BreadthFirstSolver implements Solver {
     
     public BreadthFirstSolver(State firstState, Grid grid) {
         this.problem = new Problem(grid);
-        this.state = new Node(null, firstState, "", 0);
+        this.state = null;
+        this.treeState = new Node(null, firstState, "", 0);
         this.startState = new Node(null, firstState, "", 0);
         this.statCollector = new StatCollector();
     }
@@ -42,14 +45,18 @@ public class BreadthFirstSolver implements Solver {
         return state;
     }
     
+    public Node getTreeState() {
+        return treeState;
+    }
+    
     
     @Override
     public void initialize() {
         queue = new LinkedList<>();
-        queue.add(state);
+        queue.add(treeState);
         seenStates = new HashSet<>();
+        nextState();
     }
-    
     
     @Override
     public void nextState() {
@@ -57,7 +64,8 @@ public class BreadthFirstSolver implements Solver {
             state = queue.poll();
             seenStates.add(state.state);
             
-            for (Node nextNode : problem.getPossibleActions(state)) {
+            state.childs = problem.getPossibleActions(state);
+            for (Node nextNode : state.childs) {
                 statCollector.increaseExaminedMoves();
 
                 if (!seenStates.contains(nextNode.state) && !queue.contains(nextNode)) {

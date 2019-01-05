@@ -5,6 +5,7 @@
  */
 package problem;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -13,12 +14,22 @@ import java.util.Objects;
  */
 public class Node {
     
+    public static final int UNSEEN = 0;
+    public static final int SEEN = 1;
+    public static final int DEADLOCK = 2;
+    public static final int START = 3;
+    public static final int END = 4;
+    
     public Node parent;
+    public List<Node> childs;
+    
     public State state;
     public String action;
     public int cost;
     public double bound;
     public int pnum;
+    
+    public int type;
     
     public Node(Node parent, State state, String action, int cost) {
         this.parent = parent;
@@ -26,6 +37,8 @@ public class Node {
         this.action = action;
         this.cost = cost;
         this.bound = 0;
+        this.childs = null;
+        this.type = UNSEEN;
     }
     
     @Override

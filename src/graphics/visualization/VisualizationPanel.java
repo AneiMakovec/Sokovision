@@ -48,7 +48,7 @@ public class VisualizationPanel extends JPanel {
         
         
         statePanel = new DisplayStatePanel(packer, grid, reader.getWidth(), reader.getHeight(), solver);
-        stateTreePanel = new DisplayStateTreePanel();
+        stateTreePanel = new DisplayStateTreePanel(solver);
         statisticsPanel = new DisplayStatisticsPanel();
         memCpuPanel = new DisplayMemCpuPanel();
         
@@ -83,6 +83,7 @@ public class VisualizationPanel extends JPanel {
     
     public void adjustSize() {
         statePanel.resizeGrid();
+        stateTreePanel.resizeTree();
     }
     
     public void nextState() {

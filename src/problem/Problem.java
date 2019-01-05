@@ -9,9 +9,9 @@ import grid.Grid;
 import grid.Position;
 import grid.Space;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -154,7 +154,7 @@ public class Problem {
         }
     }
     
-    public Collection<Node> getPossibleActions(Node node) {
+    public List<Node> getPossibleActions(Node node) {
         LinkedList<Node> states = null;
         
         if (node.state.getWorker() != null) {

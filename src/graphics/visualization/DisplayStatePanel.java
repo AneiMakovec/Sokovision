@@ -5,7 +5,6 @@
  */
 package graphics.visualization;
 
-import problem.State;
 import graphics.support.GridRectangle;
 import graphics.support.ImagePacker;
 import grid.Grid;
@@ -137,7 +136,9 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     }
 
     
-    
+    /*
+        MOUSE MOTION LISTENER METHODS
+    */
     @Override
     public void mouseDragged(MouseEvent e) {
         // if ctrl is pressed move the grid arround
@@ -163,6 +164,10 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     @Override
     public void mouseMoved(MouseEvent e) {}
 
+    
+    /*
+        MOUSE LISTENER METHODS
+    */
     @Override
     public void mouseClicked(MouseEvent e) {}
 
