@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
+ * Implements class StaticData.
  * @author anei
  */
 public class Grid {

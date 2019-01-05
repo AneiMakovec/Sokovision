@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package game;
+package problem;
 
 import grid.Grid;
 import grid.Position;
@@ -13,21 +13,20 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import solver.Node;
 
 /**
  *
  * @author anei
  */
-public class Game {
+public class Problem {
     
     private final Grid grid;
     
-    public Game() {
+    public Problem() {
         this.grid = new Grid();
     }
     
-    public Game(Grid grid) {
+    public Problem(Grid grid) {
         this.grid = grid;
     }
 

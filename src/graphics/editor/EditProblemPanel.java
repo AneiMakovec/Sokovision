@@ -10,7 +10,7 @@ import graphics.support.GridRectangle;
 import grid.Grid;
 import grid.Position;
 import grid.Space;
-import game.State;
+import problem.State;
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -143,8 +143,8 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
     
     
     /*
-        Private methods
-    */    
+        Initialization methods
+    */  
     private void initListeners() {
         // mouse listener
         this.addMouseListener(this);
@@ -163,6 +163,12 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         add(toolBar, BorderLayout.PAGE_START);
     }
     
+    
+    
+    
+    /*
+        Private methods
+    */
     private void importFromFile(File file) {
         SokobanReader reader = new SokobanReader(file);
         
@@ -289,6 +295,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         if (edited && canSaveGrid()) {
             SokobanWriter sw = new SokobanWriter(file);
             if (sw.isEnabled()) {
+                optimizeGrid();
                 sw.write(gridWidth, gridHeight, grid, state);
                 edited = false;
                 parent.stateChanged(tabIndex);
@@ -300,6 +307,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         if (canSaveGrid()) {
             SokobanWriter sw = new SokobanWriter(sFile);
             if (sw.isEnabled()) {
+                optimizeGrid();
                 sw.write(gridWidth, gridHeight, grid, state);
             }
         }
@@ -315,6 +323,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
      * Paints the grid with all the tiles.
      * @param g graphics component which is used to paint
      */
+    //<editor-fold defaultstate="collapsed" desc="Paint Component">
     @Override
     protected void paintComponent(Graphics g) {
         // super call
@@ -366,15 +375,14 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
             g.drawImage(packer.getImage(ImagePacker.WORKER), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
         }
     }
-    
-    
-    
+//</editor-fold>
     
     /**
      * Calculates the drawing position of a tile.
      * @param pos grid position of chosen tile
      * @return drawing position of chosen tile
      */
+    //<editor-fold defaultstate="collapsed" desc="Calculate Tile Position">
     private Position calcTilePos(Position pos) {
         int tileSize = DEFAULT_TILE_SIZE * zoom;
         
@@ -383,6 +391,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         
         return new Position(tileX, tileY);
     }
+//</editor-fold>
     
     /**
      * Calculates the grid position of the tile which was clicked on.
@@ -390,6 +399,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
      * @param y y coordinate of the mouse click
      * @return grid position of clicked tile
      */
+    //<editor-fold defaultstate="collapsed" desc="Calculate Mouse Click Position">
     private Position calcMouseToTile(int x, int y) {
         if (x <= gridRectangle.x || y <= gridRectangle.y)
             return null;
@@ -409,29 +419,33 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         
         return new Position(tileX, tileY);
     }
+//</editor-fold>
     
     /**
      * Removes the goal, crate and worker tile type from the grid if present on given position.
      * @param pos position to check
      */
+    //<editor-fold defaultstate="collapsed" desc="Check For Tiles To Remove">
     private void checkForTilesToRemove(Position pos) {
         if (grid.isGoal(pos)) {
             grid.removeGoal(pos);
         }
-                    
+        
         if (state.hasCrate(pos)) {
             state.removeCrate(pos);
         }
-                    
+        
         if (state.isWorker(pos)) {
             state.removeWorker();
         }
     }
+//</editor-fold>
     
     /**
      * Adds the selected tile type to the grid to be displayed.
      * @param e mouse event used to draw
      */
+    //<editor-fold defaultstate="collapsed" desc="Draw">
     private void draw(MouseEvent e) {
         // grid was edited
         edited = true;
@@ -439,7 +453,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         
         // pressed mouse button
         int button = e.getButton();
-
+        
         // calculate which grid tile the mouse has clicked
         Position tilePos = calcMouseToTile(e.getX(), e.getY());
         
@@ -454,11 +468,11 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
                     
                     // check if any other tile is on this position and remove it from the grid
                     checkForTilesToRemove(tilePos);
-                // FREE TILE
+                    // FREE TILE
                 } else if (currentSpace == ImagePacker.FREE) {
                     // add tile to grid
                     grid.setSpace(tilePos, new Space(Space.FREE));
-                            
+                    
                     // check if any other tile is on this position and remove it from the grid
                     checkForTilesToRemove(tilePos);
                 } else {
@@ -471,7 +485,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
                             
                             // also add an empty space under
                             grid.setSpace(tilePos, new Space(Space.FREE));
-                        // WORKER TILE
+                            // WORKER TILE
                         } else if (currentSpace == ImagePacker.WORKER) {
                             // check if clicked tile has no crate
                             if (!state.hasCrate(tilePos)) {
@@ -481,7 +495,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
                                 // also add an empty space under
                                 grid.setSpace(tilePos, new Space(Space.FREE));
                             }
-                        // CRATE TILE
+                            // CRATE TILE
                         } else if (currentSpace == ImagePacker.CRATE) {
                             // check if tile has no worker
                             if (!state.isWorker(tilePos)) {
@@ -494,7 +508,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
                         }
                     }
                 }
-            // or remove the clicked tile from the grid
+                // or remove the clicked tile from the grid
             } else if (button == MouseEvent.BUTTON3) {
                 if (state.hasCrate(tilePos)) {
                     state.removeCrate(tilePos);
@@ -511,12 +525,14 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
             this.repaint();
         }
     }
+//</editor-fold>
     
     /**
      * Sets the grid width and height and calculates the initial position and drawing tileSize of the grid.
      * @param width grid width in tiles
      * @param height grid height in tiles
      */
+    //<editor-fold defaultstate="collapsed" desc="Set Parameters">
     private void setParameters(int width, int height) {
         // first we set the grid width and height
         this.gridWidth = width;
@@ -528,6 +544,7 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         gridRectangle.width = DEFAULT_TILE_SIZE * gridWidth * zoom;
         gridRectangle.height = DEFAULT_TILE_SIZE * gridHeight * zoom;
     }
+//</editor-fold>
     
     
     private boolean checkWallConnectionUp() {

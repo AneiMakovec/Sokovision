@@ -5,7 +5,7 @@
  */
 package support.writer;
 
-import game.State;
+import problem.State;
 import grid.Grid;
 import grid.Position;
 import java.io.BufferedWriter;

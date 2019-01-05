@@ -5,7 +5,7 @@
  */
 package main;
 
-import graphics.visualization.VisualizationPane;
+import graphics.visualization.VisualizationPanel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
@@ -124,19 +124,19 @@ public class VisualizationFrame extends javax.swing.JFrame {
     
     
     private void createNewVisualPane(int solverId) {
-        VisualizationPane visualPane = new VisualizationPane(solverId, problemFile);
-        visualPanes.add(visualPane);
-        
-        Random rnd = new Random();
-        visualPane.setLocation(rnd.nextInt(this.getPreferredSize().width - visualPane.getPreferredSize().width), rnd.nextInt(this.getPreferredSize().height - visualPane.getPreferredSize().height));
-        visualPane.setVisible(true);
-        
-        pane.add(visualPane);
+//        VisualizationPanel visualPane = new VisualizationPanel(solverId, problemFile);
+//        visualPanes.add(visualPane);
+//        
+//        Random rnd = new Random();
+//        visualPane.setLocation(rnd.nextInt(this.getPreferredSize().width - visualPane.getPreferredSize().width), rnd.nextInt(this.getPreferredSize().height - visualPane.getPreferredSize().height));
+//        visualPane.setVisible(true);
+//        
+//        pane.add(visualPane);
     }
     
     // Variable declaration
     private javax.swing.JDesktopPane pane;
-    private ArrayList<VisualizationPane> visualPanes;
+    private ArrayList<VisualizationPanel> visualPanes;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JMenuItem openMenuItem;

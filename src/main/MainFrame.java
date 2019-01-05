@@ -11,15 +11,16 @@ import graphics.ui.FileStructurePanel;
 import graphics.ui.SolveSettingsPanel;
 import graphics.ui.support.DataFile;
 import graphics.ui.support.Tab;
+import graphics.visualization.VisualizationPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
@@ -55,7 +56,7 @@ import javax.swing.tree.TreePath;
  *
  * @author anei
  */
-public class MainFrame extends JFrame implements MouseListener, ActionListener {
+public class MainFrame extends JFrame implements MouseListener, ActionListener, ContainerListener {
     
     private final ImagePacker packer;
     
@@ -84,9 +85,12 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         initProjectsDir();
         initComponents();
     }
-
+    
+    /**
+     * Initializes frame components.
+     */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    // <editor-fold defaultstate="collapsed" desc="Init Components">                          
     private void initComponents() {
         menuBar = new JMenuBar();
         toolBar = new JToolBar("Command toolbar");
@@ -205,10 +209,16 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         displayPane.setBorder(BorderFactory.createEtchedBorder());
         add(displayPane, BorderLayout.CENTER);
         
+        displayPane.addContainerListener(this);
         
         pack();
     }// </editor-fold>   
     
+    
+    /**
+     * Initializes projects directory on path "user.home".
+     */
+    // <editor-fold defaultstate="collapsed" desc="Init Projects Directory">
     private void initProjectsDir() {
         Path path = Paths.get(PROJECTS_DIR_PATH);
         try {
@@ -217,58 +227,72 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
             System.err.println("FATAL ERROR: could not create projects directory - access denied.");
             System.exit(1);
         }
-    }
+    }// </editor-fold>
 
+    /**
+     * Initializes and adds buttons to tool bar.
+     * @param toolbar Tool bar to which the buttons are to be added.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Add Buttons To Tool Bar">
     private void addButtonsToToolbar(JToolBar toolbar) {
         JButton button;
         
         // new file button
         button = addButton(ImagePacker.NEW_FILE, NEW_FILE, "New file");
-        button.addActionListener((java.awt.event.ActionEvent evt) -> {
-            createNewProblemFile();
-        });
+        button.addActionListener(this);
         toolBar.add(button);
         
         // new project button
         button = addButton(ImagePacker.NEW_PROJECT, NEW_PROJECT, "New project");
-        button.addActionListener((java.awt.event.ActionEvent evt) -> {
-            createNewProject();
-        });
+        button.addActionListener(this);
         toolBar.add(button);
         
         // new solver button
         button = addButton(ImagePacker.NEW_SOLVER, NEW_SOLVER, "New solver");
-        button.addActionListener((java.awt.event.ActionEvent evt) -> {
-            createNewSolver();
-        });
+        button.addActionListener(this);
         toolBar.add(button);
+        
+        // solving control buttons
         
         // start solving button
-        button = addButton(ImagePacker.START, START, "Start solving");
-        button.setEnabled(false);
-        toolBar.add(button);
+        toolBarStartButton = addButton(ImagePacker.START, START, "Start solving");
+        toolBarStartButton.setEnabled(false);
+        toolBarStartButton.addActionListener(this);
+        toolBar.add(toolBarStartButton);
         
         // stop solving button
-        button = addButton(ImagePacker.STOP, STOP, "Stop solving");
-        button.setEnabled(false);
-        toolBar.add(button);
+        toolBarStopButton = addButton(ImagePacker.STOP, STOP, "Stop solving");
+        toolBarStopButton.setEnabled(false);
+        toolBarStopButton.addActionListener(this);
+        toolBar.add(toolBarStopButton);
         
         // pause solving button
-        button = addButton(ImagePacker.PAUSE, PAUSE, "Pause solving");
-        button.setEnabled(false);
-        toolBar.add(button);
+        toolBarPauseResumeButton = addButton(ImagePacker.PAUSE, PAUSE, "Pause solving");
+        toolBarPauseResumeButton.setEnabled(false);
+        toolBarPauseResumeButton.addActionListener(this);
+        toolBar.add(toolBarPauseResumeButton);
         
         // previous state button
-        button = addButton(ImagePacker.PREV_STATE, PREV_STATE, "Previous state");
-        button.setEnabled(false);
-        toolBar.add(button);
+        toolBarPrevButton = addButton(ImagePacker.PREV_STATE, PREV_STATE, "Previous state");
+        toolBarPrevButton.setEnabled(false);
+        toolBarPrevButton.addActionListener(this);
+        toolBar.add(toolBarPrevButton);
         
         // next state button
-        button = addButton(ImagePacker.NEXT_STATE, NEXT_STATE, "Next state");
-        button.setEnabled(false);
-        toolBar.add(button);
-    }
+        toolBarNextButton = addButton(ImagePacker.NEXT_STATE, NEXT_STATE, "Next state");
+        toolBarNextButton.setEnabled(false);
+        toolBarNextButton.addActionListener(this);
+        toolBar.add(toolBarNextButton);
+    }// </editor-fold>
     
+    /**
+     * Initializes a single tool bar button.
+     * @param imageId Id of icon to be displayed on button.
+     * @param action Action command of button action event.
+     * @param toolTipText Text to be set in tool tip of the button.
+     * @return Initialized button.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Add Button">
     protected JButton addButton(int imageId, String action, String toolTipText) {
         JButton button = new JButton();
         button.setActionCommand(action);
@@ -277,46 +301,54 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
         button.setIcon(new ImageIcon(packer.getImage(imageId)));
         
         return button;
-    }
+    }// </editor-fold>
     
-    private void addEditImagePanelToDisplayPane(File file) {
+    /**
+     * Initializes and adds a new panel for editing problems to the display pane.
+     * @param file Problem file to be edited.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Add Panel To Display">
+    private void addPanelToDisplay(JPanel panel, File file) {
         // check if a panel with the same name doesn't already exist
         if (displayPane.indexOfTab(file.getName()) == -1) {
-            // add edit panel as tabbed pane
-            EditProblemPanel editPanel = new EditProblemPanel(this, file, displayPane.getTabCount(), packer);
-            displayPane.addTab(file.getName(), editPanel);
+            // add panel
+            displayPane.addTab(file.getName(), panel);
 
             // get index of edit panel's tab
             int index = displayPane.indexOfTab(file.getName());
 
             Tab tab = new Tab(file, index, this);
-//            // create a JPanel that will replace the tab
-//            JPanel tab = new JPanel(new GridBagLayout());
-//            tab.setOpaque(false);
-//            tab.setToolTipText(file.getAbsolutePath());
-//            JLabel title = new JLabel(file.getName());
-//            JButton closeButton = new JButton("X");
-//            closeButton.setActionCommand("Tab" + index);
-//
-//            // adjust the position of tab components
-//            GridBagConstraints gbc = new GridBagConstraints();
-//            gbc.gridx = 0;
-//            gbc.gridy = 0;
-//            gbc.weightx = 1;
-//
-//            // add the tab title
-//            tab.add(title, gbc);
-//
-//            gbc.gridx++;
-//            gbc.weightx = 0;
-//
-//            // add the close button to tab
-//            tab.add(closeButton, gbc);
 
             // set the tab
             displayPane.setTabComponentAt(index, tab);
+        }
+    }// </editor-fold>
+    
+    private void loadSolverVisualizator(TreePath path, DataFile solverData) {
+        // ask for input
+        String problemName = JOptionPane.showInputDialog(this, "Name of problem file to solve:");
+                    
+        if (problemName != null) {
+            // check if input value is acceptable
+            if (problemName.length() == 0) {
+                JOptionPane.showMessageDialog(this, "No problem file specified.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            } else {
+                if (!problemName.endsWith(".txt"))
+                    problemName = problemName.concat(".txt");
+            }
 
-//            closeButton.addActionListener(this);
+             // find the project in which the solver is located
+            DefaultMutableTreeNode projectNode = fileStructPane.getProjectTreeNodeOnPath(path);
+            if (projectNode != null) {
+                DataFile projectData = (DataFile) projectNode.getUserObject();
+
+                // find the problem file specified by the user and check if it exists
+                File problemFile = new File(projectData.getDataFile().getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + problemName);
+                if (!problemFile.exists())
+                    JOptionPane.showMessageDialog(this, "There is no problem named " + problemName + " in current project " + projectData.toString() + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                else
+                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, packer), solverData.getDataFile());
+            }
         }
     }
     
@@ -406,11 +438,16 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
                 // retrieve input
                 int width = Integer.parseInt(xInput.getText());
                 int height = Integer.parseInt(yInput.getText());
-                String name = nameInput.getText() + ".txt";
+      
+                String name = nameInput.getText();
+                if (name.length() > 0 && !name.endsWith(".txt"))
+                    name = name.concat(".txt");
 
                 // check if input parameters are acceptable
                 if (width < 5 || height < 5) {
                     JOptionPane.showMessageDialog(this, "Problem must be at least 5 tiles wide and 5 tiles high.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                } else if (name.length() == 0) {
+                    JOptionPane.showMessageDialog(this, "problem file must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                 } else {
                     // build empty grid
                     StringBuilder sb = new StringBuilder();
@@ -455,30 +492,104 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     private void createNewProject() {
         String projectName = JOptionPane.showInputDialog(this, "Project name:");
         
-        // create project directory
-        File file = new File(PROJECTS_DIR_PATH + File.separator + projectName);
-        file.mkdirs();
-        
-        // create problems sub-directory
-        file = new File(PROJECTS_DIR_PATH + File.separator + projectName + PROBLEMS_SUBDIR_PATH);
-        file.mkdirs();
-        
-        // create solvers sub-directory
-        file = new File(PROJECTS_DIR_PATH + File.separator + projectName + SOLVERS_SUBDIR_PATH);
-        file.mkdirs();
-        
-        // create stats sub-directory
-        file = new File(PROJECTS_DIR_PATH + File.separator + projectName + STATS_SUBDIR_PATH);
-        file.mkdirs();
-        
-        fileStructPane.updateDirTree();
+        if (projectName != null && projectName.length() > 0) {
+            // create project directory
+            File file = new File(PROJECTS_DIR_PATH + File.separator + projectName);
+            file.mkdirs();
+
+            // create problems sub-directory
+            file = new File(PROJECTS_DIR_PATH + File.separator + projectName + PROBLEMS_SUBDIR_PATH);
+            file.mkdirs();
+
+            // create solvers sub-directory
+            file = new File(PROJECTS_DIR_PATH + File.separator + projectName + SOLVERS_SUBDIR_PATH);
+            file.mkdirs();
+
+            // create stats sub-directory
+            file = new File(PROJECTS_DIR_PATH + File.separator + projectName + STATS_SUBDIR_PATH);
+            file.mkdirs();
+
+            fileStructPane.updateDirTree();
+        }
     }
     
     public void createNewSolver() {
         
+        // get last clicked tree path
+        TreePath path = fileStructPane.getClickedTreePath();
+        if (path != null) {
+            // find the project dir in path
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DataFile data = (DataFile) node.getUserObject();
+
+            String solverName = JOptionPane.showInputDialog(this, "Solver name:");
+                
+            if (solverName != null) {
+                if (solverName.length() > 0 && !solverName.endsWith(".slvr"))
+                    solverName = solverName.concat(".slvr");
+                
+                // check if input parameters are acceptable
+                if (solverName.length() == 0) {
+                    JOptionPane.showMessageDialog(this, "Solver must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                } else {
+                    // check if files exist
+                    File solverFile = new File(data.getDataFile().getAbsolutePath() + SOLVERS_SUBDIR_PATH + File.separator + solverName);
+
+                    if (solverFile.exists()) {
+                        JOptionPane.showMessageDialog(this, "A solver named " + solverName + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        // create a new solver file
+                        try {
+                            solverFile.createNewFile();
+                            fileStructPane.updateDirTree();
+                        } catch (IOException e) {}
+                    }
+                }
+            }
+        }
     }
     
     
+    /*
+        SOLVING CONTROLS
+    */
+    private void nextState() {
+        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
+        if (visualPanel != null) {
+            visualPanel.nextState();
+            visualPanel.repaintState();
+        }
+    }
+    
+    private void prevState() {
+        
+    }
+    
+    private void startSolving() {
+        
+    }
+    
+    private void pauseSolving() {
+        
+    }
+    
+    private void resumeSolving() {
+        
+    }
+    
+    private void stopSolving() {
+        
+    }
+    
+    private VisualizationPanel getSelectedVisualizationPanel() {
+        Component comp = displayPane.getSelectedComponent();
+        if (comp instanceof VisualizationPanel) {
+            VisualizationPanel visualPanel = (VisualizationPanel) comp;
+            return visualPanel;
+        } else {
+            return null;
+        }
+    }
     
     
     
@@ -566,6 +677,30 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
                 JButton closeButton = (JButton) e.getSource();
                 closeButton.removeActionListener(this);
             }
+        } else if (e.getActionCommand().equals(NEW_FILE)) {
+            createNewProblemFile();
+        } else if (e.getActionCommand().equals(NEW_PROJECT)) {
+            createNewProject();
+        } else if (e.getActionCommand().equals(NEW_SOLVER)) {
+            createNewSolver();
+        } else if (e.getActionCommand().equals(START)) {
+            startSolving();
+        } else if (e.getActionCommand().equals(STOP)) {
+            stopSolving();
+        } else if (e.getActionCommand().equals(PAUSE)) {
+            JButton source = (JButton) e.getSource();
+            source.setActionCommand(RESUME);
+            source.setIcon(new ImageIcon(packer.getImage(ImagePacker.RESUME)));
+            pauseSolving();
+        } else if (e.getActionCommand().equals(RESUME)) {
+            JButton source = (JButton) e.getSource();
+            source.setActionCommand(PAUSE);
+            source.setIcon(new ImageIcon(packer.getImage(ImagePacker.PAUSE)));
+            resumeSolving();
+        } else if (e.getActionCommand().equals(NEXT_STATE)) {
+            nextState();
+        } else if (e.getActionCommand().equals(PREV_STATE)) {
+            prevState();
         }
     }
     
@@ -575,15 +710,24 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     */
     @Override
     public void mouseClicked(MouseEvent e) {
+        // check if double clicked on file
         if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+            
+            // retrieve path for click location
             JTree dirTree = fileStructPane.getDirTree();
             TreePath path = dirTree.getPathForLocation(e.getX(), e.getY());
             if (path != null) {
+                // get node at end of path
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                DataFile file = (DataFile) node.getUserObject();
+                DataFile data = (DataFile) node.getUserObject();
 
-                if (file.getFileType() == DataFile.PROBLEM) {
-                    addEditImagePanelToDisplayPane(file.getDataFile());
+                // check type of file that has been clicked
+                if (data.getFileType() == DataFile.PROBLEM) {
+                    // problem file -> add a problem editor to display
+                    addPanelToDisplay(new EditProblemPanel(this, data.getDataFile(), displayPane.getTabCount(), packer), data.getDataFile());
+                } else if (data.getFileType() == DataFile.SOLVER) {
+                    // solver file  -> add a solver visualizator to display
+                    loadSolverVisualizator(path, data);
                 }
             }
         }
@@ -600,6 +744,25 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
 
     @Override
     public void mouseExited(MouseEvent e) {}
+    
+    
+    
+    
+    /*
+        COMPONENT LISTENER METHODS
+    */
+    @Override
+    public void componentAdded(ContainerEvent e) {
+        pack();
+        Component compAdded = e.getChild();
+        if (compAdded instanceof VisualizationPanel) {
+            VisualizationPanel visualPanel = (VisualizationPanel) compAdded;
+            visualPanel.adjustSize();
+        }
+    }
+
+    @Override
+    public void componentRemoved(ContainerEvent e) {}
     
                                                           
 
@@ -662,5 +825,10 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener {
     private FileStructurePanel fileStructPane;
     private SolveSettingsPanel solveSettingsPane;
     private JFileChooser selectFileWindow;
-    // End of variables declaration                  
+    private JButton toolBarStartButton;
+    private JButton toolBarStopButton;
+    private JButton toolBarPauseResumeButton;
+    private JButton toolBarPrevButton;
+    private JButton toolBarNextButton;
+    // End of variables declaration
 }

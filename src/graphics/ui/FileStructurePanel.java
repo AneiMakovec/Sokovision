@@ -191,6 +191,23 @@ public class FileStructurePanel extends JPanel implements MouseListener {
         return clickedPath;
     }
     
+    public DefaultMutableTreeNode getProjectTreeNodeOnPath(TreePath path) {
+        DefaultMutableTreeNode node;
+        DataFile data;
+        for (Object objectInPath : path.getPath()) {
+            if (objectInPath instanceof DefaultMutableTreeNode) {
+                node = (DefaultMutableTreeNode) objectInPath;
+                data = (DataFile) node.getUserObject();
+                            
+                if (data.getFileType() == DataFile.PROJECT) {
+                    return node;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
     
     
     /*
@@ -230,16 +247,8 @@ public class FileStructurePanel extends JPanel implements MouseListener {
                 if (data.getFileType() == DataFile.PROJECT) {
                     clickedPath = path;
                 } else {
-                    for (Object objectInPath : path.getPath()) {
-                        if (objectInPath instanceof DefaultMutableTreeNode) {
-                            node = (DefaultMutableTreeNode) objectInPath;
-                            data = (DataFile) node.getUserObject();
-                            
-                            if (data.getFileType() == DataFile.PROJECT) {
-                                clickedPath = new TreePath(node.getPath());
-                            }
-                        }
-                    }
+                    node = getProjectTreeNodeOnPath(path);
+                    clickedPath = new TreePath(node.getPath());
                 }
             }
         }

@@ -5,7 +5,7 @@
  */
 package support.reader;
 
-import game.State;
+import problem.State;
 import grid.Grid;
 import grid.Position;
 import grid.Space;

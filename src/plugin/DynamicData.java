@@ -3,13 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package solver;
+package plugin;
 
 /**
- *
+ * Class that holds the dynamic spaces of a Sokoban problem.
  * @author anei
  */
-public interface Solver {
+public interface DynamicData {
     
-    public void solve();
 }
