@@ -39,7 +39,9 @@ public class ImagePacker {
     public static int SOLVER_FILE = 17;
     public static int STAT_FILE = 18;
     public static int CSV_FILE = 19;
-    public static int UNKNOWN_FILE = 20;
+    public static int DEAD = 20;
+    public static int RESET = 21;
+    public static int UNKNOWN_FILE = 22;
     
     public ImagePacker() {
         map = new HashMap<>();
@@ -66,6 +68,8 @@ public class ImagePacker {
             BufferedImage solverFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/solver_file.png"));
             BufferedImage statFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/stat_file.png"));
             BufferedImage csvFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/csv_file.png"));
+            BufferedImage deadSpaceImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/dead.png"));
+            BufferedImage resetImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/reset.png"));
             BufferedImage unknownFileImage = ImageIO.read(new File(System.getProperty("user.dir") + "/resources/unknown_file.png"));
             
             // create mappings for images
@@ -89,6 +93,8 @@ public class ImagePacker {
             map.put(SOLVER_FILE, solverFileImage);
             map.put(STAT_FILE, statFileImage);
             map.put(CSV_FILE, csvFileImage);
+            map.put(DEAD, deadSpaceImage);
+            map.put(RESET, resetImage);
             map.put(UNKNOWN_FILE, unknownFileImage);
         } catch (IOException e) {
             System.err.println("FATAL ERROR: ImagePacker@constructor -> Could not find and load tile images.");

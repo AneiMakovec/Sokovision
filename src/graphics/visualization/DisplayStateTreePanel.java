@@ -19,8 +19,8 @@ import javax.swing.JPanel;
 import org.abego.treelayout.TreeLayout;
 import org.abego.treelayout.util.DefaultConfiguration;
 import org.abego.treelayout.util.FixedNodeExtentProvider;
+import plugin.Solver;
 import problem.Node;
-import solver.BreadthFirstSolver;
 
 /**
  *
@@ -29,7 +29,7 @@ import solver.BreadthFirstSolver;
 public class DisplayStateTreePanel extends JPanel implements MouseListener, MouseMotionListener {
 
     private GridRectangle gridRect;
-    private BreadthFirstSolver solver;
+    private Solver solver;
     private Node solverTreeNode;
     
     private DisplayTreeNode displayTreeNode;
@@ -43,7 +43,7 @@ public class DisplayStateTreePanel extends JPanel implements MouseListener, Mous
     private int mouseY;
     
     
-    public DisplayStateTreePanel(BreadthFirstSolver solver) {
+    public DisplayStateTreePanel(Solver solver) {
         this.solver = solver;
         this.solverTreeNode = solver.getTreeState();
         this.displayTreeNode = new DisplayTreeNode(0, null, solverTreeNode.type);
@@ -57,6 +57,7 @@ public class DisplayStateTreePanel extends JPanel implements MouseListener, Mous
     
     
     private void initTree() {
+        tree = new StateTree(displayTreeNode);
         extentProvider = new FixedNodeExtentProvider<>(5, 5);
         configuration = new DefaultConfiguration<>(10, 10);
     }
@@ -76,61 +77,25 @@ public class DisplayStateTreePanel extends JPanel implements MouseListener, Mous
     
     
     private void drawTree(Graphics g, DisplayTreeNode node, Map<DisplayTreeNode, Rectangle2D> map) {
-//        if (node.childs != null) {
-//            int halfChildNum = node.childs.size() / 2;
-//            
-//            if (halfChildNum == 0) {
-//                count = drawTree(g, node.childs.get(0), count);
-//            } else {
-//                for (int i = 0; i <= halfChildNum; i++) {
-//                    count = drawTree(g, node.childs.get(i), count);
-//                }
-//            }
-//        }
-//
-//        switch (node.type) {
-//            case Node.UNSEEN:
-//                g.setColor(Color.black);
-//                g.fillOval(gridRect.x + count * 20, gridRect.y + node.cost * 20, NODE_SIZE, NODE_SIZE);
-//                break;
-//            case Node.SEEN:
-//                
-//                break;
-//            case Node.DEADLOCK:
-//                
-//                break;
-//            case Node.START:
-//                
-//                break;
-//            case Node.END:
-//                
-//                break;
-//            
-//            default:
-//                break;
-//        }
-//        
-//        count++;
-//        
-//        if (node.childs != null) {
-//            int halfChildNum = node.childs.size() / 2;
-//            
-//            for (int i = halfChildNum + 1; i < node.childs.size(); i++) {
-//                count = drawTree(g, node.childs.get(i), count);
-//            }
-//        }
-//        
-//        return count;
-
         Rectangle2D bounds = map.get(node);
+        Rectangle2D rootBounds = map.get(displayTreeNode);
         
         if (bounds != null) {
+            int x = gridRect.x + ((int)bounds.getX() - (int)rootBounds.getX());
+            int y = gridRect.y + ((int)bounds.getY() - (int)rootBounds.getY());
+            
             g.setColor(Color.black);
+            
             Rectangle2D childBounds;
+            int childX;
+            int childY;
+            int offset = 2;
             for (DisplayTreeNode child : node.childs) {
                 childBounds = map.get(child);
                 if (childBounds != null) {
-                    g.drawLine(gridRect.x + (int)bounds.getX() + 2, gridRect.y + (int)bounds.getY() + 2, gridRect.x + (int)childBounds.getX() + 2, gridRect.y + (int)childBounds.getY() + 2);
+                    childX = gridRect.x + ((int)childBounds.getX() - (int)rootBounds.getX());
+                    childY = gridRect.y + ((int)childBounds.getY() - (int)rootBounds.getY());
+                    g.drawLine(x + offset, y + offset, childX + offset, childY + offset);
                 }
             }
             
@@ -151,28 +116,12 @@ public class DisplayStateTreePanel extends JPanel implements MouseListener, Mous
                     break;
             }
             
-            g.fillOval(gridRect.x + (int)bounds.getX(), gridRect.y + (int)bounds.getY(), (int)bounds.getWidth(), (int)bounds.getHeight());
+            g.fillOval(x, y, (int)bounds.getWidth(), (int)bounds.getHeight());
             
             for (DisplayTreeNode child : node.childs) {
                 drawTree(g, child, map);
             }
         }
-    }
-    
-    
-    private int getTreeDepth(Node node, int depth) {
-        if (node != null) {
-            if (node.cost + 1 > depth)
-                depth = node.cost + 1;
-            
-            if (node.childs != null) {
-                for (Node child : node.childs) {
-                    depth = getTreeDepth(child, depth);
-                }
-            }
-        }
-        
-        return depth;
     }
     
     
@@ -198,9 +147,8 @@ public class DisplayStateTreePanel extends JPanel implements MouseListener, Mous
         // call parent method
         super.paintComponent(g);
         
-//        System.out.println("Redrawing");
+        solverTreeNode = solver.getTreeState();
         resetTree(displayTreeNode, solverTreeNode, 1);
-        tree = new StateTree(displayTreeNode);
         treeLayout = new TreeLayout(tree, extentProvider, configuration);
         
         Map<DisplayTreeNode, Rectangle2D> bounds = treeLayout.getNodeBounds();

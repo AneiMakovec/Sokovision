@@ -15,8 +15,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JPanel;
+import plugin.Solver;
 import problem.Node;
-import solver.BreadthFirstSolver;
 
 /**
  *
@@ -27,7 +27,7 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     private final ImagePacker packer;
     
     private final Grid grid;
-    private BreadthFirstSolver solver;
+    private Solver solver;
     private Node state;
     
     private final GridRectangle gridRect;
@@ -45,7 +45,7 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
      * @param gridHeight
      * @param solver
      */
-    public DisplayStatePanel(ImagePacker packer, Grid grid, int gridWidth, int gridHeight, BreadthFirstSolver solver) {
+    public DisplayStatePanel(ImagePacker packer, Grid grid, int gridWidth, int gridHeight, Solver solver) {
         this.packer = packer;
         this.grid = grid;
         this.state = solver.getState();
@@ -107,6 +107,9 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
             
             if (s.type == Space.WALL || s.type == Space.FREE) {
                 g.drawImage(packer.getImage(s.type), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
+                if (s.isDead) {
+                    g.drawImage(packer.getImage(ImagePacker.DEAD), p.getX(), p.getY(), tileSize + 1, tileSize + 1, this);
+                }
             } else {
                 System.err.println("FATAL ERROR: EditImagePanel@paintComponent -> Space on grid has illegal type.");
                 System.exit(1);

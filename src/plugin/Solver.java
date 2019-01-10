@@ -5,25 +5,32 @@
  */
 package plugin;
 
+import problem.Node;
+import problem.StatCollector;
+
 /**
  *
  * @author anei
  */
 public interface Solver {
     
+    public Node getState();
+    
+    public Node getTreeState();
+    
+    public StatCollector getStats();
+    
+    public boolean isSolutionFound();
+    
+    public boolean isStillSolving();
+    
     public void initialize();
-    
-    public void start();
-    
-    public void stop();
-    
-    public void pause();
-    
-    public void resume();
     
     public void nextState();
     
     public void prevState();
     
+    public void reset();
+      
     public void solve();
 }

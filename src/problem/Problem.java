@@ -28,6 +28,7 @@ public class Problem {
     
     public Problem(Grid grid) {
         this.grid = grid;
+        scanGrid();
     }
 
     public Set<Position> getGoals() {
@@ -36,87 +37,94 @@ public class Problem {
     
     
     
-    public State initState(String stateString) {
-        State state = new State();
-        
-        int x = 0, y = 0, maxRowLength = 0;
-        String[] rows = stateString.split("\n");
-        
-        boolean gridStarted;
-        for (String row : rows) {
-            String[] symbols = row.split("");
-            gridStarted = false;
-            Position pos;
-            
-            for (String symbol : symbols) {
-                if (gridStarted) {
-                    switch(symbol) {
-                        case "#":   // wall
-                            this.grid.setSpace(new Position(x, y), new Space(Space.WALL));
-                            break;
-                        case " ":   // free space
-                            this.grid.setSpace(new Position(x, y), new Space(Space.FREE));
-                            break;
-                        case ".":   // empty goal 
-                            pos = new Position(x, y);
-                            this.grid.setSpace(pos, new Space(Space.FREE));
-                            this.grid.addGoal(pos);
-                            break;
-                        case "@":   // worker on free space
-                            pos = new Position(x, y);
-                            this.grid.setSpace(pos, new Space(Space.FREE));
-                            state.setWorker(pos);
-                            break;
-                        case "+":   // worker on goal
-                            pos = new Position(x, y);
-                            this.grid.setSpace(pos, new Space(Space.FREE));
-                            state.setWorker(pos);
-                            this.grid.addGoal(pos);
-                            break;
-                        case "$":   // crate on free space
-                            pos = new Position(x, y);
-                            this.grid.setSpace(pos, new Space(Space.FREE));
-                            state.addCrate(pos);
-                            break;
-                        case "*":   // crate on goal
-                            pos = new Position(x, y);
-                            this.grid.setSpace(pos, new Space(Space.FREE));
-                            state.addCrate(pos);
-                            this.grid.addGoal(pos);
-                            break;
-                        default:
-                            break;
-                    }
-                } else {
-                    if (symbol.equals("#")) {
-                        gridStarted = true;
-                        this.grid.setSpace(new Position(x, y), new Space(Space.WALL));
-                    }
-                }
-                
-                x++;
-            }
-            
-            if (x > maxRowLength)
-                maxRowLength = x;
-            
-            y++;
-            x = 0;
+//    public State initState(String stateString) {
+//        State state = new State();
+//        
+//        int x = 0, y = 0, maxRowLength = 0;
+//        String[] rows = stateString.split("\n");
+//        
+//        boolean gridStarted;
+//        for (String row : rows) {
+//            String[] symbols = row.split("");
+//            gridStarted = false;
+//            Position pos;
+//            
+//            for (String symbol : symbols) {
+//                if (gridStarted) {
+//                    switch(symbol) {
+//                        case "#":   // wall
+//                            this.grid.setSpace(new Position(x, y), new Space(Space.WALL));
+//                            break;
+//                        case " ":   // free space
+//                            this.grid.setSpace(new Position(x, y), new Space(Space.FREE));
+//                            break;
+//                        case ".":   // empty goal 
+//                            pos = new Position(x, y);
+//                            this.grid.setSpace(pos, new Space(Space.FREE));
+//                            this.grid.addGoal(pos);
+//                            break;
+//                        case "@":   // worker on free space
+//                            pos = new Position(x, y);
+//                            this.grid.setSpace(pos, new Space(Space.FREE));
+//                            state.setWorker(pos);
+//                            break;
+//                        case "+":   // worker on goal
+//                            pos = new Position(x, y);
+//                            this.grid.setSpace(pos, new Space(Space.FREE));
+//                            state.setWorker(pos);
+//                            this.grid.addGoal(pos);
+//                            break;
+//                        case "$":   // crate on free space
+//                            pos = new Position(x, y);
+//                            this.grid.setSpace(pos, new Space(Space.FREE));
+//                            state.addCrate(pos);
+//                            break;
+//                        case "*":   // crate on goal
+//                            pos = new Position(x, y);
+//                            this.grid.setSpace(pos, new Space(Space.FREE));
+//                            state.addCrate(pos);
+//                            this.grid.addGoal(pos);
+//                            break;
+//                        default:
+//                            break;
+//                    }
+//                } else {
+//                    if (symbol.equals("#")) {
+//                        gridStarted = true;
+//                        this.grid.setSpace(new Position(x, y), new Space(Space.WALL));
+//                    }
+//                }
+//                
+//                x++;
+//            }
+//            
+//            if (x > maxRowLength)
+//                maxRowLength = x;
+//            
+//            y++;
+//            x = 0;
+//        }
+//        
+//        // go backwards through the grid and check for dead spaces
+//        while (y >= 0) {
+//            y--;
+//            x = maxRowLength;
+//            
+//            while (x >= 0) {
+//                x--;
+//                
+//                this.checkCornerAt(new Position(x, y));
+//            }
+//        }
+//        
+//        return state;
+//    }
+    
+    private void scanGrid() {
+        for (Position pos : grid.getPositions()) {
+            checkCornerAt(pos);
+            checkWallLineAt(pos);
         }
-        
-        // go backwards through the grid and check for dead spaces
-        while (y >= 0) {
-            y--;
-            x = maxRowLength;
-            
-            while (x >= 0) {
-                x--;
-                
-                this.checkCornerAt(new Position(x, y));
-            }
-        }
-        
-        return state;
     }
     
     private void checkCornerAt(Position position) {
@@ -149,6 +157,136 @@ public class Problem {
                     }
 
                     modifier++;
+                }
+            }
+        }
+    }
+    
+    private void checkWallLineAt(Position position) {
+        Space space = grid.getSpace(position);
+        
+        if (space != null && !space.isDead && space.type == Space.FREE) {
+            // check up
+            Space neighbour = grid.getSpace(position.getUp());
+            if (neighbour.type == Space.WALL) {
+                if (checkWallLineRight(position.getRight()) && checkWallLineLeft(position.getLeft())) {
+                    space.isDead = true;
+                }
+            } else {
+                // check down
+                neighbour = grid.getSpace(position.getDown());
+                if (neighbour.type == Space.WALL) {
+                    if (checkWallLineRight(position.getRight()) && checkWallLineLeft(position.getLeft())) {
+                        space.isDead = true;
+                    }
+                }
+            }
+            
+            // check right
+            neighbour = grid.getSpace(position.getRight());
+            if (neighbour.type == Space.WALL) {
+                if (checkWallLineUp(position.getUp()) && checkWallLineDown(position.getDown())) {
+                    space.isDead = true;
+                }
+            } else {
+                // check left
+                neighbour = grid.getSpace(position.getLeft());
+                if (neighbour.type == Space.WALL) {
+                    if (checkWallLineUp(position.getUp()) && checkWallLineDown(position.getDown())) {
+                        space.isDead = true;
+                    }
+                }
+            }
+        }
+    }
+    
+    private boolean checkWallLineUp(Position position) {
+        Space space = grid.getSpace(position);
+        
+        if (space.isDead || space.type == Space.WALL) {
+            return true;
+        } else {
+            // check if right neighbour is wall
+            Space neighbour = grid.getSpace(position.getRight());
+            if (neighbour.type == Space.WALL) {
+                return checkWallLineUp(position.getUp());
+            } else {
+                // check if left neighbour is wall
+                neighbour = grid.getSpace(position.getLeft());
+                if (neighbour.type == Space.WALL) {
+                    return checkWallLineUp(position.getUp());
+                } else {
+                    // if neither neighbours are walls return false
+                    return false;
+                }
+            }
+        }
+    }
+    
+    private boolean checkWallLineDown(Position position) {
+        Space space = grid.getSpace(position);
+        
+        if (space.isDead || space.type == Space.WALL) {
+            return true;
+        } else {
+            // check if right neighbour is wall
+            Space neighbour = grid.getSpace(position.getRight());
+            if (neighbour.type == Space.WALL) {
+                return checkWallLineDown(position.getDown());
+            } else {
+                // check if left neighbour is wall
+                neighbour = grid.getSpace(position.getLeft());
+                if (neighbour.type == Space.WALL) {
+                    return checkWallLineDown(position.getDown());
+                } else {
+                    // if neither neighbours are walls return false
+                    return false;
+                }
+            }
+        }
+    }
+    
+    private boolean checkWallLineRight(Position position) {
+        Space space = grid.getSpace(position);
+        
+        if (space.isDead || space.type == Space.WALL) {
+            return true;
+        } else {
+            // check if up neighbour is wall
+            Space neighbour = grid.getSpace(position.getUp());
+            if (neighbour.type == Space.WALL) {
+                return checkWallLineRight(position.getRight());
+            } else {
+                // check if down neighbour is wall
+                neighbour = grid.getSpace(position.getDown());
+                if (neighbour.type == Space.WALL) {
+                    return checkWallLineRight(position.getRight());
+                } else {
+                    // if neither neighbours are walls return false
+                    return false;
+                }
+            }
+        }
+    }
+    
+    private boolean checkWallLineLeft(Position position) {
+        Space space = grid.getSpace(position);
+        
+        if (space.isDead || space.type == Space.WALL) {
+            return true;
+        } else {
+            // check if up neighbour is wall
+            Space neighbour = grid.getSpace(position.getUp());
+            if (neighbour.type == Space.WALL) {
+                return checkWallLineLeft(position.getLeft());
+            } else {
+                // check if down neighbour is wall
+                neighbour = grid.getSpace(position.getDown());
+                if (neighbour.type == Space.WALL) {
+                    return checkWallLineLeft(position.getLeft());
+                } else {
+                    // if neither neighbours are walls return false
+                    return false;
                 }
             }
         }
@@ -422,6 +560,8 @@ public class Problem {
         */
         
         // NEW DEADLOCK DETECTION IMPLEMENTATION
+        
+        // FROZEN CRATE DETECTION
         HashSet<Position> frozen = new HashSet<>();
         HashSet<Position> seenCrates = new HashSet<>();
         for (Position crate : state.getCrates()) {

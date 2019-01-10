@@ -6,9 +6,9 @@
 package solver;
 
 import grid.Grid;
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import plugin.Solver;
@@ -16,67 +16,78 @@ import problem.Node;
 import problem.Problem;
 import problem.StatCollector;
 import problem.State;
+import solver.support.Heuristics;
 
 /**
  *
  * @author anei
  */
-public class BreadthFirstSolver implements Solver {
+public class AStarSolver implements Solver {
     
     private Problem problem;
     private Node state;
     private Node treeState;
     private State startState;
     private StatCollector statCollector;
-    
     private boolean solutionFound;
     
     private Queue<Node> queue;
     private Set<State> seenStates;
+    private static Heuristics heuristics;
     
-    public BreadthFirstSolver(State firstState, Grid grid) {
+    
+    public static Comparator<Node> heurComparator = new Comparator<Node>() {
+        @Override
+        public int compare(Node n1, Node n2) {
+            return (int) ((n1.cost + heuristics.getHeuristic(n1.state)) - (n2.cost + heuristics.getHeuristic(n2.state)));
+        }
+    };
+    
+    
+    public AStarSolver(State firstState, Grid grid, String heuristicsType) {
         this.problem = new Problem(grid);
         this.state = null;
         this.treeState = new Node(null, firstState, "", 0);
         this.startState = firstState;
         this.statCollector = new StatCollector();
         this.solutionFound = false;
+        heuristics = new Heuristics(heuristicsType, problem.getGoals());
     }
     
+
     @Override
     public Node getState() {
         return state;
     }
-    
+
     @Override
     public Node getTreeState() {
         return treeState;
     }
-    
+
     @Override
     public StatCollector getStats() {
         return statCollector;
     }
-    
+
     @Override
     public boolean isSolutionFound() {
         return solutionFound;
     }
-    
+
     @Override
     public boolean isStillSolving() {
         return !queue.isEmpty();
     }
-    
-    
+
     @Override
     public void initialize() {
-        queue = new LinkedList<>();
+        queue = new  PriorityQueue<>(11, heurComparator);
         queue.add(treeState);
         seenStates = new HashSet<>();
         nextState();
     }
-    
+
     @Override
     public void nextState() {
         if (!solutionFound && !queue.isEmpty()) {
@@ -85,7 +96,7 @@ public class BreadthFirstSolver implements Solver {
             if (state != null)
                 state.type = Node.VISITED;
             
-            state = queue.poll();
+            state = queue.remove();
             seenStates.add(state.state);
             state.type = Node.CURRENT;
             
@@ -114,6 +125,13 @@ public class BreadthFirstSolver implements Solver {
                 } else {
                     nextNode.type = Node.SEEN;
                     statCollector.increaseStatesAlreadySeen();
+                    
+                    // check if priority queue contains current state and change the cost if lower
+                    for (Node temp : queue) {
+                        if (temp.equals(nextNode))
+                            if (nextNode.cost < temp.cost)
+                                temp = nextNode;
+                    }
                 }
             }
             
@@ -121,12 +139,12 @@ public class BreadthFirstSolver implements Solver {
             statCollector.setStatesInFringe(queue.size());
         }
     }
-    
+
     @Override
     public void prevState() {
         
     }
-    
+
     @Override
     public void reset() {
         solutionFound = false;
@@ -135,43 +153,10 @@ public class BreadthFirstSolver implements Solver {
         statCollector.reset();
         initialize();
     }
-    
-    
 
     @Override
     public void solve() {
-//        long startTime = System.currentTimeMillis();
-//        
-//        Queue<Node> queue = new LinkedList<>();
-//        queue.add(state);
-//        Set<State> seenStates = new HashSet<>();
-//
-//        do {
-//            state = queue.poll();
-//            seenStates.add(state.state);
-//            
-//            for (Node nextNode : problem.getPossibleActions(state)) {
-//                statCollector.increaseExaminedMoves();
-//
-//                if (!seenStates.contains(nextNode.state) && !queue.contains(nextNode)) {
-//                    if (problem.isEnd(nextNode.state)) {
-//                        statCollector.parseSolution(nextNode);
-//                        statCollector.setStatesInFringe(queue.size());
-//                        statCollector.setTime(System.currentTimeMillis() - startTime);
-//                        return;
-//                    }
-//                    
-//                    if (!problem.isDeadlock(nextNode.state)) {
-//                        queue.add(nextNode);
-//                    } else {
-//                        statCollector.increaseDeadlocks();
-//                    }
-//                }
-//            }
-//        } while (!queue.isEmpty());
-//        
-//        statCollector.setStatesInFringe(queue.size());
-//        statCollector.setTime(System.currentTimeMillis() - startTime);
+        
     }
-    
+
 }

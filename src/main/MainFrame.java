@@ -35,6 +35,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -47,8 +48,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import support.writer.SolverWriter;
 
 
 /**
@@ -68,6 +71,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     static final private String STOP = "stop";
     static final private String PAUSE = "pause";
     static final private String RESUME = "resume";
+    static final private String RESET = "reset";
     
     
     private final String PROJECTS_DIR_PATH = System.getProperty("user.home") + File.separator + "SokovisionProjects";
@@ -97,6 +101,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         fileStructPane = new FileStructurePanel(this, PROJECTS_DIR_PATH, packer);
         solveSettingsPane = new SolveSettingsPanel();
         selectFileWindow = new JFileChooser();
+        solvingTimer = new Timer(100, this);
 
         
         // frame setup
@@ -104,6 +109,9 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         setTitle("Sokovision");
         setPreferredSize(new Dimension(1200, 800));
         
+        
+        // solving timer setup
+        solvingTimer.setActionCommand(NEXT_STATE);
         
         // menu bar setup
         
@@ -266,6 +274,11 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         toolBarPauseResumeButton.setEnabled(false);
         toolBar.add(toolBarPauseResumeButton);
         
+        // reset button
+        toolBarResetButton = addButton(ImagePacker.RESET, RESET, "Reset solver");
+        toolBarResetButton.setEnabled(false);
+        toolBar.add(toolBarResetButton);
+        
         // previous state button
         toolBarPrevButton = addButton(ImagePacker.PREV_STATE, PREV_STATE, "Previous state");
         toolBarPrevButton.setEnabled(false);
@@ -317,6 +330,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             // if the panel added is a visualization panel also enable the tool bar buttons
             if (panel instanceof VisualizationPanel) {
                 toolBarStartButton.setEnabled(true);
+                toolBarResetButton.setEnabled(true);
                 toolBarNextButton.setEnabled(true);
                 toolBarPrevButton.setEnabled(true);
             }
@@ -433,7 +447,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         TreePath path = fileStructPane.getClickedTreePath();
         if (path != null) {
             // find the project dir in path
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DefaultMutableTreeNode node = fileStructPane.getProjectTreeNodeOnPath(path);
             DataFile data = (DataFile) node.getUserObject();
             
             projectName.setText(data.toString());
@@ -442,19 +456,37 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             int result = JOptionPane.showConfirmDialog(this, inputPanel, "New problem file", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 // retrieve input
+                
+                // width and height of grid
                 int width = Integer.parseInt(xInput.getText());
                 int height = Integer.parseInt(yInput.getText());
       
+                // name of file
                 String name = nameInput.getText();
                 if (name.length() > 0 && !name.endsWith(".txt"))
                     name = name.concat(".txt");
+                
+                File projectDir;
+                
+                // name of project to contain file
+                String project = projectName.getText();
+                if (!project.equals(data.toString())) {
+                    projectDir = new File(PROJECTS_DIR_PATH + File.separator + project);
+                    
+                    if (!projectDir.exists()) {
+                        JOptionPane.showMessageDialog(this, "No existing project named " + project + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                } else {
+                    projectDir = data.getDataFile();
+                }
 
                 // check if input parameters are acceptable
                 if (width < 5 || height < 5) {
                     JOptionPane.showMessageDialog(this, "Problem must be at least 5 tiles wide and 5 tiles high.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                 } else if (name.length() == 0) {
-                    JOptionPane.showMessageDialog(this, "problem file must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
-                } else {
+                    JOptionPane.showMessageDialog(this, "Problem file must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                } else {           
                     // build empty grid
                     StringBuilder sb = new StringBuilder();
                     for (int y = 0; y < height; y++) {
@@ -467,28 +499,28 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     }
 
                     // construct path to new file
-                    File newFile = new File(data.getDataFile().getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + name);
+                    File newFile = new File(projectDir.getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + name);
                     
-                    try {
-                        // check if file with this name already exists
-                        if (newFile.exists()) {
-                            JOptionPane.showMessageDialog(this, "File " + name + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
-                        } else {
+                    // check if file with this name already exists
+                    if (newFile.exists()) {
+                        JOptionPane.showMessageDialog(this, "File " + name + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        try {
                             // create new empty file
                             newFile.createNewFile();
-                            
+
                             // write empty grid to file
                             BufferedWriter writer = new BufferedWriter(new FileWriter(newFile));
                             writer.write(sb.toString());
                             writer.flush();
                             writer.close();
-                            
+
                             // update file structure
                             fileStructPane.updateDirTree();
+                        } catch (IOException e) {
+                            // if error while writing, delete file
+                            newFile.delete();
                         }
-                    } catch (IOException e) {
-                        // if error while writing, delete file
-                        newFile.delete();
                     }
                 }
             }
@@ -520,35 +552,106 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     }
     
     public void createNewSolver() {
+        // init dialog component
+        String solverTypeNames[] = {"Breadth-first search", "Depth-first search", "A* search", "Iterative deepening A* search"};
+        JTextField nameInput = new JTextField(30);
+        JComboBox solverTypes = new JComboBox(solverTypeNames);
+        JTextField projectName = new JTextField(30);
+
+        JPanel inputPanel = new JPanel(new GridLayout(5, 2));
+        inputPanel.setPreferredSize(new Dimension(300, 150));
+        inputPanel.add(new JLabel("Name: "));
+        inputPanel.add(nameInput);
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(new JLabel("Solver type:"));
+        inputPanel.add(solverTypes);
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(Box.createVerticalStrut(15));
+        inputPanel.add(new JLabel("Project: "));
+        inputPanel.add(projectName);
         
         // get last clicked tree path
         TreePath path = fileStructPane.getClickedTreePath();
         if (path != null) {
             // find the project dir in path
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DefaultMutableTreeNode node = fileStructPane.getProjectTreeNodeOnPath(path);
             DataFile data = (DataFile) node.getUserObject();
+            
+            projectName.setText(data.toString());
 
-            String solverName = JOptionPane.showInputDialog(this, "Solver name:");
+            // ask for input
+            int result = JOptionPane.showConfirmDialog(this, inputPanel, "New solver", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                String solverName = nameInput.getText();
+                String solverType = solverTypes.getSelectedItem().toString();
+                String project = projectName.getText();
                 
-            if (solverName != null) {
-                if (solverName.length() > 0 && !solverName.endsWith(".slvr"))
-                    solverName = solverName.concat(".slvr");
+                if (solverName != null && solverType != null && project != null) {
+                    
+                    // if solver needs heuristics, get user input
+                    String heuristicsType = "";
+                    if (solverType.equals("A* search") || solverType.equals("Iterative deepening A* search")) {
+                        String heurTypeNames[] = {"Manhattan", "Euclidean", "Hungarian"};
+                        JComboBox heurTypes = new JComboBox(heurTypeNames);
+                        
+                        JPanel heurInputPanel = new JPanel(new GridLayout(1, 2));
+                        heurInputPanel.setPreferredSize(new Dimension(300, 100));
+                        heurInputPanel.add(new JLabel("Heuristics type:"));
+                        heurInputPanel.add(heurTypes);
+                        
+                        // ask for input
+                        int heurResult = JOptionPane.showConfirmDialog(this, heurInputPanel, "Choose heuristics", JOptionPane.OK_CANCEL_OPTION);
+                        if (heurResult == JOptionPane.OK_OPTION) {
+                            heuristicsType = heurTypes.getSelectedItem().toString();
+                        } else {
+                            heuristicsType = "Manhattan";
+                        }
+                    }
+                    
+                    // check solver name
+                    if (solverName.length() > 0 && !solverName.endsWith(".slvr"))
+                        solverName = solverName.concat(".slvr");
+                    
+                    File projectDir;
                 
-                // check if input parameters are acceptable
-                if (solverName.length() == 0) {
-                    JOptionPane.showMessageDialog(this, "Solver must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
-                } else {
-                    // check if files exist
-                    File solverFile = new File(data.getDataFile().getAbsolutePath() + SOLVERS_SUBDIR_PATH + File.separator + solverName);
+                    // name of project to contain file
+                    if (!project.equals(data.toString())) {
+                        projectDir = new File(PROJECTS_DIR_PATH + File.separator + project);
 
-                    if (solverFile.exists()) {
-                        JOptionPane.showMessageDialog(this, "A solver named " + solverName + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        if (!projectDir.exists()) {
+                            JOptionPane.showMessageDialog(this, "No existing project named " + project + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
                     } else {
-                        // create a new solver file
-                        try {
-                            solverFile.createNewFile();
-                            fileStructPane.updateDirTree();
-                        } catch (IOException e) {}
+                        projectDir = data.getDataFile();
+                    }
+
+                    // check if input parameters are acceptable
+                    if (solverName.length() == 0) {
+                        JOptionPane.showMessageDialog(this, "Solver must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        // check if files exist
+                        File solverFile = new File(projectDir.getAbsolutePath() + SOLVERS_SUBDIR_PATH + File.separator + solverName);
+
+                        if (solverFile.exists()) {
+                            JOptionPane.showMessageDialog(this, "A solver named " + solverName + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        } else {
+                            try {
+                                // create a new solver file
+                                solverFile.createNewFile();
+                                
+                                // write data to file
+                                SolverWriter writer = new SolverWriter(solverFile);
+                                writer.write(solverType, heuristicsType);
+                                
+                                // update file structure
+                                fileStructPane.updateDirTree();
+                            } catch (IOException e) {
+                                // if error while writing, delete file
+                                solverFile.delete();
+                            }
+                        }
                     }
                 }
             }
@@ -562,8 +665,14 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     private void nextState() {
         VisualizationPanel visualPanel = getSelectedVisualizationPanel();
         if (visualPanel != null) {
-            visualPanel.nextState();
-            visualPanel.repaintState();
+            if (visualPanel.isSolutionFound()) {
+                finishSolving();
+            } else {
+                if (visualPanel.isStillSolving())
+                    visualPanel.nextState();
+                else
+                    finishSolving();
+            }
         }
     }
     
@@ -572,19 +681,38 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     }
     
     private void startSolving() {
-        
+        toolBarStopButton.setEnabled(true);
+        toolBarPauseResumeButton.setEnabled(true);
+        toolBarPauseResumeButton.setActionCommand(PAUSE);
+        toolBarPauseResumeButton.setIcon(new ImageIcon(packer.getImage(ImagePacker.PAUSE)));
+        solvingTimer.start();
     }
     
     private void pauseSolving() {
-        
+        solvingTimer.stop();
     }
     
     private void resumeSolving() {
-        
+        solvingTimer.start();
     }
     
     private void stopSolving() {
-        
+        finishSolving();
+        resetSolver();
+    }
+    
+    private void resetSolver() {
+        solvingTimer.stop();
+        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
+        if (visualPanel != null) {
+            visualPanel.resetSolver();
+        }
+    }
+    
+    private void finishSolving() {
+        solvingTimer.stop();
+        toolBarStopButton.setEnabled(false);
+        toolBarPauseResumeButton.setEnabled(false);
     }
     
     private VisualizationPanel getSelectedVisualizationPanel() {
@@ -714,6 +842,8 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             source.setActionCommand(PAUSE);
             source.setIcon(new ImageIcon(packer.getImage(ImagePacker.PAUSE)));
             resumeSolving();
+        } else if (e.getActionCommand().equals(RESET)) {
+            resetSolver();
         } else if (e.getActionCommand().equals(NEXT_STATE)) {
             nextState();
         } else if (e.getActionCommand().equals(PREV_STATE)) {
@@ -845,7 +975,9 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     private JButton toolBarStartButton;
     private JButton toolBarStopButton;
     private JButton toolBarPauseResumeButton;
+    private JButton toolBarResetButton;
     private JButton toolBarPrevButton;
     private JButton toolBarNextButton;
+    private Timer solvingTimer;
     // End of variables declaration
 }
