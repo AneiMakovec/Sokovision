@@ -19,6 +19,8 @@ public class Node {
     public static final int DEADLOCK = 2;
     public static final int START = 3;
     public static final int END = 4;
+    public static final int CURRENT = 5;
+    public static final int VISITED = 6;
     
     public Node parent;
     public List<Node> childs;

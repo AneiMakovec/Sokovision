@@ -61,8 +61,12 @@ public class BreadthFirstSolver implements Solver {
     @Override
     public void nextState() {
         if (!queue.isEmpty()) {
+            if (state != null)
+                state.type = Node.VISITED;
+            
             state = queue.poll();
             seenStates.add(state.state);
+            state.type = Node.CURRENT;
             
             state.childs = problem.getPossibleActions(state);
             for (Node nextNode : state.childs) {
@@ -79,10 +83,15 @@ public class BreadthFirstSolver implements Solver {
                     if (!problem.isDeadlock(nextNode.state)) {
                         queue.add(nextNode);
                     } else {
+                        nextNode.type = Node.DEADLOCK;
                         statCollector.increaseDeadlocks();
                     }
+                } else {
+                    nextNode.type = Node.SEEN;
                 }
             }
+            
+            //state.type = Node.UNSEEN;
         }
     }
     
