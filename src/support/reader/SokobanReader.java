@@ -29,6 +29,9 @@ public class SokobanReader {
         this.height = 0;
         this.reader = null;
         
+        if (!fileName.getName().endsWith(".txt"))
+            return;
+        
         try {
             this.reader = new BufferedReader(new FileReader(fileName));
         } catch (IOException e) {}

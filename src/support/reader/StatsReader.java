@@ -9,24 +9,19 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import support.writer.SolverWriter;
 
 /**
  *
  * @author anei
  */
-public class SolverReader {
+public class StatsReader {
     
     private BufferedReader reader;
-    private int solverType;
-    private int heurType;
     
-    public SolverReader(File fileName) {
+    public StatsReader(File fileName) {
         this.reader = null;
-        this.solverType = SolverWriter.BFS;
-        this.heurType = -1;
         
-        if (!fileName.getName().endsWith(".slvr"))
+        if (!fileName.getName().endsWith(".stat"))
             return;
         
         try {
@@ -38,19 +33,24 @@ public class SolverReader {
         return this.reader != null;
     }
     
-    public int getSolverType() {
-        return solverType;
+    
+    
+    public String readLine() {
+        if (reader != null) {
+            try {
+                return reader.readLine();
+            } catch (IOException e) {}
+        }
+        
+        return null;
     }
     
-    public int getHeurType() {
-        return heurType;
+    public void close() {
+        if (reader != null) {
+            try {
+                reader.close();
+            } catch (IOException e) {}
+        }
     }
     
-    public void read() {
-        try {
-            solverType = Integer.parseInt(reader.readLine());
-            heurType = Integer.parseInt(reader.readLine());
-            reader.close();
-        } catch (IOException e) {}
-    }
 }

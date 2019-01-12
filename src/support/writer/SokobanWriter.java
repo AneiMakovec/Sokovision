@@ -25,6 +25,9 @@ public class SokobanWriter {
     public SokobanWriter(File fileName) {
         this.writer = null;
         
+        if (!fileName.getName().endsWith(".txt"))
+            return;
+        
         try {
             this.writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
         } catch (IOException e) {}

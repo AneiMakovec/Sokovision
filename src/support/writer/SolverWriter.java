@@ -31,6 +31,9 @@ public class SolverWriter {
     public SolverWriter(File fileName) {
         this.writer = null;
         
+        if (!fileName.getName().endsWith(".slvr"))
+            return;
+        
         try {
             this.writer = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
         } catch (IOException e) {}

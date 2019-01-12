@@ -363,10 +363,24 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 
                 // find the problem file specified by the user and check if it exists
                 File problemFile = new File(projectData.getDataFile().getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + problemName);
-                if (!problemFile.exists())
+                if (!problemFile.exists()) {
                     JOptionPane.showMessageDialog(this, "There is no problem named " + problemName + " in current project " + projectData.toString() + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
-                else
-                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, packer), solverData.getDataFile());
+                } else {
+                    // find or create a new stat file for this solver
+                    String statsFileName = solverData.getDataFile().toString();
+                    statsFileName = statsFileName.replace(".slvr", ".stat");
+                    
+                    File statsFile = new File(projectData.getDataFile().getAbsolutePath() + STATS_SUBDIR_PATH + File.separator + statsFileName);
+                    if (!statsFile.exists()) {
+                        try {
+                            statsFile.createNewFile();
+                        } catch (IOException e) {
+                            //return;
+                        }
+                    }
+                    
+                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, statsFile, packer), solverData.getDataFile());
+                }
             }
         }
     }
@@ -389,19 +403,37 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         if (comp != null) {
             File selectedFile = selectFile(); 
             
-            if (comp instanceof EditProblemPanel) {
-                if (!selectedFile.getName().endsWith(".txt")) {
-                    JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
-                } else {
-                    if (!selectedFile.exists()) {
-                        try {
-                            selectedFile.createNewFile();
-                        } catch (IOException e) {
-                            return;
+            if (selectedFile != null) {
+                if (comp instanceof EditProblemPanel) {
+                    if (!selectedFile.getName().endsWith(".txt")) {
+                        JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.txt'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        if (!selectedFile.exists()) {
+                            try {
+                                selectedFile.createNewFile();
+                            } catch (IOException e) {
+                                return;
+                            }
                         }
+                        
+                        EditProblemPanel editPanel = (EditProblemPanel) comp;
+                        editPanel.export(selectedFile);
                     }
-                    EditProblemPanel editPanel = (EditProblemPanel) comp;
-                    editPanel.export(selectedFile);
+                } else if (comp instanceof VisualizationPanel) {
+                    if (!selectedFile.getName().endsWith(".csv")) {
+                        JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.csv'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        if (!selectedFile.exists()) {
+                            try {
+                                selectedFile.createNewFile();
+                            } catch (IOException e) {
+                                return;
+                            }
+                        }
+                        
+                        VisualizationPanel visualPanel = (VisualizationPanel) comp;
+                        visualPanel.exportStats(selectedFile);
+                    }
                 }
             }
         }
@@ -667,6 +699,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         if (visualPanel != null) {
             if (visualPanel.isSolutionFound()) {
                 finishSolving();
+                visualPanel.saveStats();
             } else {
                 if (visualPanel.isStillSolving())
                     visualPanel.nextState();
@@ -728,7 +761,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     
     
     /*
-        EDIT PANEL STATE CHANGED METHOD
+        EDIT PANEL STATE LISTENER METHODS
     */
     public void stateChanged(int tabIndex) {
         EditProblemPanel editPanel = (EditProblemPanel) displayPane.getComponentAt(tabIndex);
@@ -744,7 +777,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     
     
     /*
-        FILE STRUCTURE PANEL DELETE METHOD
+        FILE STRUCTURE PANEL LISTENRE METHODS
     */
     public void delete() {
         TreePath path = fileStructPane.getClickedTreePath();
@@ -784,6 +817,20 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         }
 
         file.delete();
+    }
+    
+    public void exportSingleFile() {
+        TreePath path = fileStructPane.getClickedTreePath();
+        if (path != null) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DataFile data = (DataFile) node.getUserObject();
+
+            if (data.getFileType() != DataFile.STAT) {
+                JOptionPane.showMessageDialog(this, "Cannot export this file.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            } else {
+                
+            }
+        }
     }
     
     

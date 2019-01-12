@@ -127,8 +127,6 @@ public class FileStructurePanel extends JPanel implements MouseListener {
                     child = new DefaultMutableTreeNode(new DataFile(file, DataFile.UNKNOWN, new ImageIcon(packer.getImage(ImagePacker.UNKNOWN_FILE))));;
                 }
                 
-                
-                
                 model.insertNodeInto(child, root, root.getChildCount());
             }
         }
@@ -177,9 +175,31 @@ public class FileStructurePanel extends JPanel implements MouseListener {
         projectPopupMenu.add(action);
         
         
+        // stats popup
+        statsPopupMenu = new JPopupMenu();
+        
+        action = new AbstractAction("Export") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                parent.exportSingleFile();
+            }
+        };
+        statsPopupMenu.add(action);
+        
+        statsPopupMenu.addSeparator();
+        
+        action = new AbstractAction("Delete") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                parent.delete();
+            }
+        };
+        statsPopupMenu.add(action);
+        
         
         dirTree.add(filePopupMenu);
         dirTree.add(projectPopupMenu);
+        dirTree.add(statsPopupMenu);
         dirTree.addMouseListener(this);
     }
     
@@ -231,6 +251,8 @@ public class FileStructurePanel extends JPanel implements MouseListener {
                 
                 if (data.getFileType() == DataFile.PROJECT)
                     projectPopupMenu.show(dirTree, x, y);
+                else if (data.getFileType() == DataFile.STAT)
+                    statsPopupMenu.show(dirTree, x, y);
                 else
                     filePopupMenu.show(dirTree, x, y);
                 
@@ -267,5 +289,6 @@ public class FileStructurePanel extends JPanel implements MouseListener {
     private JTree dirTree;
     private JPopupMenu filePopupMenu;
     private JPopupMenu projectPopupMenu;
+    private JPopupMenu statsPopupMenu;
     // End of variable declaration
 }

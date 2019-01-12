@@ -20,7 +20,9 @@ import solver.DepthFirstSolver;
 import solver.IDAStarSolver;
 import support.reader.SokobanReader;
 import support.reader.SolverReader;
+import support.reader.StatsReader;
 import support.writer.SolverWriter;
+import support.writer.StatsWriter;
 
 /**
  *
@@ -30,6 +32,7 @@ public class VisualizationPanel extends JPanel {
     
     private File problemFile;
     private final File solverFile;
+    private final File statsFile;
     
     private Solver solver;
     private Grid grid;
@@ -39,9 +42,10 @@ public class VisualizationPanel extends JPanel {
     
     private final boolean toolBarButtonsState[] = new boolean[5];
     
-    public VisualizationPanel(File solverFile, File problemFile, ImagePacker packer) {
+    public VisualizationPanel(File solverFile, File problemFile, File statsFile, ImagePacker packer) {
         this.problemFile = problemFile;
         this.solverFile = solverFile;
+        this.statsFile = statsFile;
         initSolver();
         initComponents(packer);
     }
@@ -120,6 +124,32 @@ public class VisualizationPanel extends JPanel {
     public void nextState() {
         solver.nextState();
         repaintState();
+    }
+    
+    public void saveStats() {
+        StatsWriter writer = new StatsWriter(statsFile);
+        if (writer.isEnabled()) {
+            writer.writeToStatFile(problemFile.getName(), solver.getStats(), state);
+        }
+    }
+    
+    public void exportStats(File csvFile) {
+        StatsReader reader = new StatsReader(statsFile);
+        StatsWriter writer = new StatsWriter(csvFile);
+        
+        if (reader.isEnabled() && writer.isEnabled()) {
+            String line = "";
+            writer.setUpCsv();
+            
+            while (line != null) {
+                line = reader.readLine();
+                line = line.replace(":", ",");
+                writer.writeToCsvFile(line);
+            }
+            
+            reader.close();
+            writer.close();
+        }
     }
     
     public void resetSolver() {
