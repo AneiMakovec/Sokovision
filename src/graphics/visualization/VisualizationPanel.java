@@ -133,23 +133,27 @@ public class VisualizationPanel extends JPanel {
         }
     }
     
-    public void exportStats(File csvFile) {
+    public boolean exportStats(File csvFile) {
         StatsReader reader = new StatsReader(statsFile);
         StatsWriter writer = new StatsWriter(csvFile);
         
         if (reader.isEnabled() && writer.isEnabled()) {
-            String line = "";
             writer.setUpCsv();
             
+            String line = reader.readLine();
             while (line != null) {
-                line = reader.readLine();
                 line = line.replace(":", ",");
                 writer.writeToCsvFile(line);
+                line = reader.readLine();
             }
             
             reader.close();
             writer.close();
+            
+            return true;
         }
+        
+        return false;
     }
     
     public void resetSolver() {
@@ -163,6 +167,10 @@ public class VisualizationPanel extends JPanel {
     
     public boolean isStillSolving() {
         return solver.isStillSolving();
+    }
+    
+    public String getSolution() {
+        return solver.getStats().getSolution();
     }
     
     private void repaintState() {

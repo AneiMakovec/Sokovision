@@ -51,7 +51,9 @@ import javax.swing.JTree;
 import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import support.reader.StatsReader;
 import support.writer.SolverWriter;
+import support.writer.StatsWriter;
 
 
 /**
@@ -367,15 +369,16 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     JOptionPane.showMessageDialog(this, "There is no problem named " + problemName + " in current project " + projectData.toString() + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                 } else {
                     // find or create a new stat file for this solver
-                    String statsFileName = solverData.getDataFile().toString();
+                    String statsFileName = solverData.toString();
                     statsFileName = statsFileName.replace(".slvr", ".stat");
                     
                     File statsFile = new File(projectData.getDataFile().getAbsolutePath() + STATS_SUBDIR_PATH + File.separator + statsFileName);
                     if (!statsFile.exists()) {
                         try {
                             statsFile.createNewFile();
+                            fileStructPane.updateDirTree();
                         } catch (IOException e) {
-                            //return;
+                            JOptionPane.showMessageDialog(this, "Could not create statistics file for solver" + solverData.toString() + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                         }
                     }
                     
@@ -417,7 +420,11 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                         }
                         
                         EditProblemPanel editPanel = (EditProblemPanel) comp;
-                        editPanel.export(selectedFile);
+                        if (editPanel.export(selectedFile)) {
+                            JOptionPane.showMessageDialog(this, "Problem has been exported.", "Success", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Could not export problem.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        }
                     }
                 } else if (comp instanceof VisualizationPanel) {
                     if (!selectedFile.getName().endsWith(".csv")) {
@@ -427,12 +434,17 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                             try {
                                 selectedFile.createNewFile();
                             } catch (IOException e) {
+                                JOptionPane.showMessageDialog(this, "Could not export statistic data. Error while creating file.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                                 return;
                             }
                         }
                         
                         VisualizationPanel visualPanel = (VisualizationPanel) comp;
-                        visualPanel.exportStats(selectedFile);
+                        if (visualPanel.exportStats(selectedFile)) {
+                            JOptionPane.showMessageDialog(this, "Statistic data has been exported.", "Success", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Could not export statistic data.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        }
                     }
                 }
             }
@@ -698,13 +710,22 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         VisualizationPanel visualPanel = getSelectedVisualizationPanel();
         if (visualPanel != null) {
             if (visualPanel.isSolutionFound()) {
-                finishSolving();
-                visualPanel.saveStats();
-            } else {
-                if (visualPanel.isStillSolving())
-                    visualPanel.nextState();
-                else
+                if (solvingTimer.isRunning()) {
                     finishSolving();
+                    
+                    JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    
+                    visualPanel.saveStats();
+                }
+            } else {
+                if (visualPanel.isStillSolving()) {
+                    visualPanel.nextState();
+                } else {
+                    if (solvingTimer.isRunning()) {
+                        finishSolving();
+                        JOptionPane.showMessageDialog(this, "No solution has been found.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    }
+                }
             }
         }
     }
@@ -828,7 +849,43 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             if (data.getFileType() != DataFile.STAT) {
                 JOptionPane.showMessageDialog(this, "Cannot export this file.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             } else {
+                File selectedFile = selectFile();
                 
+                if (selectedFile != null) {
+                    if (!selectedFile.getName().endsWith(".csv")) {
+                        JOptionPane.showMessageDialog(this, "Invalid file name extension. File name should end in '.csv'.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        if (!selectedFile.exists()) {
+                            try {
+                                selectedFile.createNewFile();
+                            } catch (IOException e) {
+                                JOptionPane.showMessageDialog(this, "Could not export statistic data. Error while creating file.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                                return;
+                            }
+                        }
+                        
+                        StatsReader reader = new StatsReader(data.getDataFile());
+                        StatsWriter writer = new StatsWriter(selectedFile);
+
+                        if (reader.isEnabled() && writer.isEnabled()) {
+                            writer.setUpCsv();
+
+                            String line = reader.readLine();;
+                            while (line != null) {
+                                line = line.replace(":", ",");
+                                writer.writeToCsvFile(line);
+                                line = reader.readLine();
+                            }
+
+                            reader.close();
+                            writer.close();
+                            
+                            JOptionPane.showMessageDialog(this, "Statistic data has been exported.", "Success", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                }
+                
+                JOptionPane.showMessageDialog(this, "Could not export statistic data.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             }
         }
     }

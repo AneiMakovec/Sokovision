@@ -303,14 +303,17 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         }
     }
     
-    public void export(File sFile) {
+    public boolean export(File sFile) {
         if (canSaveGrid()) {
             SokobanWriter sw = new SokobanWriter(sFile);
             if (sw.isEnabled()) {
                 optimizeGrid();
                 sw.write(gridWidth, gridHeight, grid, state);
+                return true;
             }
         }
+        
+        return false;
     }
 
     
