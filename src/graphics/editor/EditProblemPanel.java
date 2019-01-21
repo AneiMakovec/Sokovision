@@ -187,6 +187,11 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
             return false;
         }
         
+        if (hasAnyEmptySpaces()) {
+            JOptionPane.showMessageDialog(this, "There must not be an empty space inside the problem!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
         if (!isWorkerPresent()) {
             JOptionPane.showMessageDialog(this, "There is no worker!", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             return false;
@@ -266,6 +271,19 @@ public class EditProblemPanel extends JPanel implements MouseListener, MouseMoti
         
         // check left wall
         return checkWallConnectionLeft();
+    }
+    
+    public boolean hasAnyEmptySpaces() {
+        for (Position pos : grid.getPositions()) {
+            Space space = grid.getSpace(pos);
+            if (space != null && space.type == Space.FREE) {
+                if (grid.isVoid(pos.getUp()) || grid.isVoid(pos.getRight()) || grid.isVoid(pos.getDown()) || grid.isVoid(pos.getLeft())) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     public void optimizeGrid() {

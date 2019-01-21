@@ -9,8 +9,8 @@ import grid.Grid;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import plugin.Solver;
 import problem.Node;
 import problem.Problem;
@@ -31,9 +31,11 @@ public class AStarSolver implements Solver {
     private StatCollector statCollector;
     private boolean solutionFound;
     
-    private Queue<Node> queue;
+    private PriorityQueue<Node> queue;
     private Set<State> seenStates;
     private static Heuristics heuristics;
+    
+    private Stack<Node> previousStates;
     
     
     public static Comparator<Node> heurComparator = new Comparator<Node>() {
@@ -85,6 +87,7 @@ public class AStarSolver implements Solver {
         queue = new  PriorityQueue<>(11, heurComparator);
         queue.add(treeState);
         seenStates = new HashSet<>();
+        previousStates = new Stack<>();
         nextState();
     }
 
@@ -93,8 +96,10 @@ public class AStarSolver implements Solver {
         if (!solutionFound && !queue.isEmpty()) {
             long startTime = System.nanoTime();
             
-            if (state != null)
+            if (state != null) {
                 state.type = Node.VISITED;
+                previousStates.push(state);
+            }
             
             state = queue.remove();
             seenStates.add(state.state);
@@ -142,7 +147,33 @@ public class AStarSolver implements Solver {
 
     @Override
     public void prevState() {
-        
+        if (!previousStates.isEmpty() && !solutionFound && !queue.isEmpty()) {
+            // remove all children's children and reset stat collector
+            for (Node child : state.childs) {
+                queue.remove(child);
+                child.childs = null;
+                
+                if (child.type == Node.DEADLOCK)
+                    statCollector.decreaseDeadlocks();
+                else if (child.type == Node.SEEN)
+                    statCollector.decreaseStatesAlreadySeen();
+                
+                statCollector.decreaseExaminedMoves();
+            }
+            
+            // remove all children and add state back to fringe
+            state.childs = null;
+            state.type = Node.UNSEEN;
+            seenStates.remove(state.state);
+            queue.add(state);
+            
+            // load previous state
+            state = previousStates.pop();
+            state.type = Node.CURRENT;
+            
+            statCollector.setSolutionDepth(state.cost + 1);
+            statCollector.setStatesInFringe(queue.size());
+        }
     }
 
     @Override

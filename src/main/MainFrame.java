@@ -391,6 +391,14 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     
     
     
+    /*
+        MENU METHODS
+    */
+    
+    /**
+     * Saves currently open panel's data.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Save">
     private void save() {
         Component comp = displayPane.getSelectedComponent();
         if (comp != null) {
@@ -400,11 +408,16 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
+//</editor-fold>
     
+    /**
+     * Exports currently open panel's data.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Export">
     private void export() {
         Component comp = displayPane.getSelectedComponent();
         if (comp != null) {
-            File selectedFile = selectFile(); 
+            File selectedFile = selectFile();
             
             if (selectedFile != null) {
                 if (comp instanceof EditProblemPanel) {
@@ -450,7 +463,13 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
+//</editor-fold>
     
+    /**
+     * Displays a file choosing dialog and asks for user input.
+     * @return file chosen by user
+     */
+    //<editor-fold defaultstate="collapsed" desc="Select File">
     private File selectFile() {
         int retVal = selectFileWindow.showOpenDialog(this);
         
@@ -462,7 +481,12 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         
         return sFile;
     }
+//</editor-fold>
     
+    /**
+     * Creates a new problem file.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Create New Problem File">
     public void createNewProblemFile() {
         // init dialog component
         JTextField nameInput = new JTextField(30);
@@ -504,7 +528,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 // width and height of grid
                 int width = Integer.parseInt(xInput.getText());
                 int height = Integer.parseInt(yInput.getText());
-      
+                
                 // name of file
                 String name = nameInput.getText();
                 if (name.length() > 0 && !name.endsWith(".txt"))
@@ -524,24 +548,24 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 } else {
                     projectDir = data.getDataFile();
                 }
-
+                
                 // check if input parameters are acceptable
                 if (width < 5 || height < 5) {
                     JOptionPane.showMessageDialog(this, "Problem must be at least 5 tiles wide and 5 tiles high.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                 } else if (name.length() == 0) {
                     JOptionPane.showMessageDialog(this, "Problem file must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
-                } else {           
+                } else {
                     // build empty grid
                     StringBuilder sb = new StringBuilder();
                     for (int y = 0; y < height; y++) {
                         for (int x = 0; x < width; x++) {
                             sb.append("o");
                         }
-
+                        
                         if (y < height - 1)
                             sb.append("\n");
                     }
-
+                    
                     // construct path to new file
                     File newFile = new File(projectDir.getAbsolutePath() + PROBLEMS_SUBDIR_PATH + File.separator + name);
                     
@@ -552,13 +576,13 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                         try {
                             // create new empty file
                             newFile.createNewFile();
-
+                            
                             // write empty grid to file
                             BufferedWriter writer = new BufferedWriter(new FileWriter(newFile));
                             writer.write(sb.toString());
                             writer.flush();
                             writer.close();
-
+                            
                             // update file structure
                             fileStructPane.updateDirTree();
                         } catch (IOException e) {
@@ -570,7 +594,12 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
+//</editor-fold>
     
+    /**
+     * Creates a new project.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Create New Project">
     private void createNewProject() {
         String projectName = JOptionPane.showInputDialog(this, "Project name:");
         
@@ -578,30 +607,35 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             // create project directory
             File file = new File(PROJECTS_DIR_PATH + File.separator + projectName);
             file.mkdirs();
-
+            
             // create problems sub-directory
             file = new File(PROJECTS_DIR_PATH + File.separator + projectName + PROBLEMS_SUBDIR_PATH);
             file.mkdirs();
-
+            
             // create solvers sub-directory
             file = new File(PROJECTS_DIR_PATH + File.separator + projectName + SOLVERS_SUBDIR_PATH);
             file.mkdirs();
-
+            
             // create stats sub-directory
             file = new File(PROJECTS_DIR_PATH + File.separator + projectName + STATS_SUBDIR_PATH);
             file.mkdirs();
-
+            
             fileStructPane.updateDirTree();
         }
     }
+//</editor-fold>
     
+    /**
+     * Creates a new solver file.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Create New Solver">
     public void createNewSolver() {
         // init dialog component
         String solverTypeNames[] = {"Breadth-first search", "Depth-first search", "A* search", "Iterative deepening A* search"};
         JTextField nameInput = new JTextField(30);
         JComboBox solverTypes = new JComboBox(solverTypeNames);
         JTextField projectName = new JTextField(30);
-
+        
         JPanel inputPanel = new JPanel(new GridLayout(5, 2));
         inputPanel.setPreferredSize(new Dimension(300, 150));
         inputPanel.add(new JLabel("Name: "));
@@ -623,7 +657,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             DataFile data = (DataFile) node.getUserObject();
             
             projectName.setText(data.toString());
-
+            
             // ask for input
             int result = JOptionPane.showConfirmDialog(this, inputPanel, "New solver", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
@@ -658,11 +692,11 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                         solverName = solverName.concat(".slvr");
                     
                     File projectDir;
-                
+                    
                     // name of project to contain file
                     if (!project.equals(data.toString())) {
                         projectDir = new File(PROJECTS_DIR_PATH + File.separator + project);
-
+                        
                         if (!projectDir.exists()) {
                             JOptionPane.showMessageDialog(this, "No existing project named " + project + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                             return;
@@ -670,14 +704,14 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     } else {
                         projectDir = data.getDataFile();
                     }
-
+                    
                     // check if input parameters are acceptable
                     if (solverName.length() == 0) {
                         JOptionPane.showMessageDialog(this, "Solver must have a name.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                     } else {
                         // check if files exist
                         File solverFile = new File(projectDir.getAbsolutePath() + SOLVERS_SUBDIR_PATH + File.separator + solverName);
-
+                        
                         if (solverFile.exists()) {
                             JOptionPane.showMessageDialog(this, "A solver named " + solverName + " already exists.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
                         } else {
@@ -701,11 +735,16 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
+//</editor-fold>
     
     
     /*
         SOLVING CONTROLS
     */
+    //<editor-fold defaultstate="collapsed" desc="Solving Controls">
+    /**
+     * Signalizes the solver to find a next state.
+     */
     private void nextState() {
         VisualizationPanel visualPanel = getSelectedVisualizationPanel();
         if (visualPanel != null) {
@@ -730,10 +769,19 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         }
     }
     
+    /**
+     * Signalizes the solver to restore a previous state.
+     */
     private void prevState() {
-        
+        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
+        if (visualPanel != null) {
+            visualPanel.prevState();
+        }
     }
     
+    /**
+     * Signalizes the solver to start solving.
+     */
     private void startSolving() {
         toolBarStopButton.setEnabled(true);
         toolBarPauseResumeButton.setEnabled(true);
@@ -742,19 +790,31 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         solvingTimer.start();
     }
     
+    /**
+     * Signalizes the solver to pause the solving.
+     */
     private void pauseSolving() {
         solvingTimer.stop();
     }
     
+    /**
+     * Signalizes the solver to resume the solving.
+     */
     private void resumeSolving() {
         solvingTimer.start();
     }
     
+    /**
+     * Signalizes the solver to stop the solving and reset the data.
+     */
     private void stopSolving() {
         finishSolving();
         resetSolver();
     }
     
+    /**
+     * Signalizes the solver to reset the data.
+     */
     private void resetSolver() {
         solvingTimer.stop();
         VisualizationPanel visualPanel = getSelectedVisualizationPanel();
@@ -763,12 +823,21 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         }
     }
     
+    /**
+     * Signalizes the solver to finish solving.
+     */
     private void finishSolving() {
         solvingTimer.stop();
         toolBarStopButton.setEnabled(false);
         toolBarPauseResumeButton.setEnabled(false);
     }
+//</editor-fold>
     
+    /**
+     * Checks if the currently displayed panel is a VisualizationPanel and returns it.
+     * @return currently displayed VisualizationPanel
+     */
+    //<editor-fold defaultstate="collapsed" desc="Get Selected Visualization Panel">
     private VisualizationPanel getSelectedVisualizationPanel() {
         Component comp = displayPane.getSelectedComponent();
         if (comp instanceof VisualizationPanel) {
@@ -778,12 +847,19 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             return null;
         }
     }
+//</editor-fold>
     
     
     
     /*
         EDIT PANEL STATE LISTENER METHODS
     */
+    
+    /**
+     * Changes the tab text if the user changed a state or saved.
+     * @param tabIndex index of the currently displayed panel
+     */
+    //<editor-fold defaultstate="collapsed" desc="State Changed">
     public void stateChanged(int tabIndex) {
         EditProblemPanel editPanel = (EditProblemPanel) displayPane.getComponentAt(tabIndex);
         Tab tab = (Tab) displayPane.getTabComponentAt(tabIndex);
@@ -795,6 +871,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             tab.getTitle().setFont(font.deriveFont(font.getStyle() & ~Font.BOLD));
         }
     }
+//</editor-fold>
     
     
     /*

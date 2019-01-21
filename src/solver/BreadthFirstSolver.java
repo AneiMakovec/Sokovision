@@ -6,11 +6,10 @@
 package solver;
 
 import grid.Grid;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import plugin.Solver;
 import problem.Node;
 import problem.Problem;
@@ -31,8 +30,10 @@ public class BreadthFirstSolver implements Solver {
     
     private boolean solutionFound;
     
-    private Queue<Node> queue;
+    private LinkedList<Node> queue;
     private Set<State> seenStates;
+    
+    private Stack<Node> previousStates;
     
     public BreadthFirstSolver(State firstState, Grid grid) {
         this.problem = new Problem(grid);
@@ -74,6 +75,7 @@ public class BreadthFirstSolver implements Solver {
         queue = new LinkedList<>();
         queue.add(treeState);
         seenStates = new HashSet<>();
+        previousStates = new Stack<>();
         nextState();
     }
     
@@ -82,8 +84,12 @@ public class BreadthFirstSolver implements Solver {
         if (!solutionFound && !queue.isEmpty()) {
             long startTime = System.nanoTime();
             
-            if (state != null)
+            if (state != null) {
                 state.type = Node.VISITED;
+                
+                // store prevoius state
+                previousStates.push(state);
+            }
             
             state = queue.poll();
             seenStates.add(state.state);
@@ -124,7 +130,33 @@ public class BreadthFirstSolver implements Solver {
     
     @Override
     public void prevState() {
-        
+        if (!previousStates.isEmpty() && !solutionFound && !queue.isEmpty()) {
+            // remove all children's children and reset stat collector
+            for (Node child : state.childs) {
+                queue.remove(child);
+                child.childs = null;
+                
+                if (child.type == Node.DEADLOCK)
+                    statCollector.decreaseDeadlocks();
+                else if (child.type == Node.SEEN)
+                    statCollector.decreaseStatesAlreadySeen();
+                
+                statCollector.decreaseExaminedMoves();
+            }
+            
+            // remove all children and add state back to fringe
+            state.childs = null;
+            state.type = Node.UNSEEN;
+            seenStates.remove(state.state);
+            queue.addFirst(state);
+            
+            // load previous state
+            state = previousStates.pop();
+            state.type = Node.CURRENT;
+            
+            statCollector.setSolutionDepth(state.cost + 1);
+            statCollector.setStatesInFringe(queue.size());
+        }
     }
     
     @Override

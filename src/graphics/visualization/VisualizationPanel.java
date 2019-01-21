@@ -126,6 +126,11 @@ public class VisualizationPanel extends JPanel {
         repaintState();
     }
     
+    public void prevState() {
+        solver.prevState();
+        repaintState();
+    }
+    
     public void saveStats() {
         StatsWriter writer = new StatsWriter(statsFile);
         if (writer.isEnabled()) {

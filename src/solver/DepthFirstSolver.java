@@ -7,7 +7,6 @@ package solver;
 
 import grid.Grid;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.Stack;
 import plugin.Solver;
@@ -32,6 +31,8 @@ public class DepthFirstSolver implements Solver {
     
     private Stack<Node> stack;
     private Set<State> seenStates;
+    
+    private Stack<Node> previousStates;
     
     
     
@@ -77,6 +78,7 @@ public class DepthFirstSolver implements Solver {
         stack = new Stack<>();
         stack.push(treeState);
         seenStates = new HashSet<>();
+        previousStates = new Stack<>();
         nextState();
     }
 
@@ -85,8 +87,10 @@ public class DepthFirstSolver implements Solver {
         if (!solutionFound && !stack.isEmpty()) {
             long startTime = System.nanoTime();
             
-            if (state != null)
+            if (state != null) {
                 state.type = Node.VISITED;
+                previousStates.push(state);
+            }
             
             state = stack.pop();
             seenStates.add(state.state);
@@ -127,7 +131,33 @@ public class DepthFirstSolver implements Solver {
 
     @Override
     public void prevState() {
-        
+        if (!previousStates.isEmpty() && !solutionFound && !stack.isEmpty()) {
+            // remove all children's children and reset stat collector
+            for (Node child : state.childs) {
+                stack.remove(child);
+                child.childs = null;
+                
+                if (child.type == Node.DEADLOCK)
+                    statCollector.decreaseDeadlocks();
+                else if (child.type == Node.SEEN)
+                    statCollector.decreaseStatesAlreadySeen();
+                
+                statCollector.decreaseExaminedMoves();
+            }
+            
+            // remove all children and add state back to fringe
+            state.childs = null;
+            state.type = Node.UNSEEN;
+            seenStates.remove(state.state);
+            stack.push(state);
+            
+            // load previous state
+            state = previousStates.pop();
+            state.type = Node.CURRENT;
+            
+            statCollector.setSolutionDepth(state.cost + 1);
+            statCollector.setStatesInFringe(stack.size());
+        }
     }
 
     @Override
