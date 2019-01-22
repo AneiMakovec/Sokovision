@@ -9,6 +9,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Objects;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,7 +36,7 @@ public class Tab extends JPanel {
         setToolTipText(file.getAbsolutePath());
         title = new JLabel(file.getName());
         closeButton = new JButton("X");
-        closeButton.setActionCommand("Tab" + index);
+        closeButton.setActionCommand("Tab" + file.getName());
 
         // adjust the position of tab components
         GridBagConstraints gbc = new GridBagConstraints();
@@ -57,4 +58,28 @@ public class Tab extends JPanel {
     public JLabel getTitle() {
         return title;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.title);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Tab other = (Tab) obj;
+        return Objects.equals(this.title, other.title);
+    }
+    
+    
 }

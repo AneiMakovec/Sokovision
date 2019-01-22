@@ -142,6 +142,9 @@ public class AStarSolver implements Solver {
             
             statCollector.increaseTime(System.nanoTime() - startTime);
             statCollector.setStatesInFringe(queue.size());
+            
+            if (state.parent == null)
+                state.type = Node.VISITED;
         }
     }
 

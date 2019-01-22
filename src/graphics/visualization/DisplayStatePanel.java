@@ -62,6 +62,9 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     
     
     public void resizeGrid() {
+        gridRect.x = getWidth() / 10;
+        gridRect.y = getHeight() / 10;
+        
         if (tileSize > 5) {
             boolean tooWide = false;
             boolean tooHigh = false;

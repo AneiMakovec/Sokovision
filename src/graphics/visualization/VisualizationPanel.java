@@ -7,12 +7,15 @@ package graphics.visualization;
 
 import problem.State;
 import graphics.support.ImagePacker;
+import graphics.ui.SolveSettingsPanel;
 import grid.Grid;
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.io.File;
 import javax.swing.BorderFactory;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeListener;
 import plugin.Solver;
 import solver.AStarSolver;
 import solver.BreadthFirstSolver;
@@ -42,36 +45,37 @@ public class VisualizationPanel extends JPanel {
     
     private final boolean toolBarButtonsState[] = new boolean[5];
     
-    public VisualizationPanel(File solverFile, File problemFile, File statsFile, ImagePacker packer) {
+    public VisualizationPanel(File solverFile, File problemFile, File statsFile, ImagePacker packer, SolveSettingsPanel settingsPanel, ChangeListener listener) {
         this.problemFile = problemFile;
         this.solverFile = solverFile;
         this.statsFile = statsFile;
         initSolver();
-        initComponents(packer);
+        initComponents(packer, settingsPanel, listener);
     }
     
     @SuppressWarnings("unchecked")
-    private void initComponents(ImagePacker packer) {
+    private void initComponents(ImagePacker packer, SolveSettingsPanel settingsPanel, ChangeListener listener) {
         // set button states
+        // TODO
         
-        
+        layers = new JLayeredPane();
         statePanel = new DisplayStatePanel(packer, grid, sokobanReader.getWidth(), sokobanReader.getHeight(), solver);
         stateTreePanel = new DisplayStateTreePanel(solver);
-        statisticsPanel = new DisplayStatisticsPanel(solver.getStats());
-        memCpuPanel = new DisplayMemCpuPanel();
+        statisticsPanel = new DisplayStatisticsPanel(solver.getStats(), listener);
         
         // set up
         statePanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        stateTreePanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        statisticsPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        memCpuPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+
+        setLayout(new BorderLayout());
         
-        setLayout(new GridLayout(2, 2));
+        add(layers, BorderLayout.CENTER);
+
+        layers.add(stateTreePanel, 0, 0);
+        layers.add(statePanel, 1, 0);
         
-        add(statePanel);
-        add(stateTreePanel);
-        add(statisticsPanel);
-        add(memCpuPanel);
+        
+        // set up settingsPanel
+        settingsPanel.add(statisticsPanel, BorderLayout.CENTER);
     }
     
     private void initSolver() {
@@ -117,18 +121,21 @@ public class VisualizationPanel extends JPanel {
     
     
     public void adjustSize() {
+        statePanel.setBounds(0, 0, layers.getWidth() / 3, layers.getHeight() / 3);
+        stateTreePanel.setBounds(layers.getBounds());
+        
         statePanel.resizeGrid();
         stateTreePanel.resizeTree();
     }
     
-    public void nextState() {
+    public void nextState(boolean repaint) {
         solver.nextState();
-        repaintState();
+        repaintState(repaint);
     }
     
     public void prevState() {
         solver.prevState();
-        repaintState();
+        repaintState(true);
     }
     
     public void saveStats() {
@@ -163,7 +170,7 @@ public class VisualizationPanel extends JPanel {
     
     public void resetSolver() {
         solver.reset();
-        repaintState();
+        repaintState(true);
     }
     
     public boolean isSolutionFound() {
@@ -178,18 +185,20 @@ public class VisualizationPanel extends JPanel {
         return solver.getStats().getSolution();
     }
     
-    private void repaintState() {
-        statePanel.repaint();
-        stateTreePanel.repaint();
+    private void repaintState(boolean repaint) {
+        if (repaint) {
+            statePanel.repaint();
+            stateTreePanel.repaint();
+        }
+        
         statisticsPanel.updateStats();
-        memCpuPanel.updateMemUsage();
     }
     
     
     // Variables declaration
+    private JLayeredPane layers;
     private DisplayStatePanel statePanel;
     private DisplayStateTreePanel stateTreePanel;
     private DisplayStatisticsPanel statisticsPanel;
-    private DisplayMemCpuPanel memCpuPanel;
     // End of variable declaration
 }

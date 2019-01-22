@@ -6,6 +6,7 @@
 package main;
 
 import graphics.editor.EditProblemPanel;
+import graphics.statistics.StatisticsVisualPanel;
 import graphics.support.ImagePacker;
 import graphics.ui.FileStructurePanel;
 import graphics.ui.SolveSettingsPanel;
@@ -44,11 +45,14 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import support.reader.StatsReader;
@@ -60,7 +64,7 @@ import support.writer.StatsWriter;
  *
  * @author anei
  */
-public class MainFrame extends JFrame implements MouseListener, ActionListener, ContainerListener {
+public class MainFrame extends JFrame implements MouseListener, ActionListener, ContainerListener, ChangeListener {
     
     private final ImagePacker packer;
     
@@ -103,7 +107,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         fileStructPane = new FileStructurePanel(this, PROJECTS_DIR_PATH, packer);
         solveSettingsPane = new SolveSettingsPanel();
         selectFileWindow = new JFileChooser();
-        solvingTimer = new Timer(100, this);
+        solvingTimer = new Timer(800, this);
 
         
         // frame setup
@@ -195,13 +199,12 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         
         // control pane setup
         JPanel controlPane = new JPanel();
-        controlPane.setPreferredSize(new Dimension(300, 800));
         controlPane.setLayout(new BoxLayout(controlPane, BoxLayout.Y_AXIS));
         
         // tabs
         JTabbedPane projectTabs = new JTabbedPane();
         projectTabs.setBorder(BorderFactory.createEtchedBorder());
-        
+
         // file structure
         projectTabs.add("Projects", fileStructPane);
         
@@ -382,7 +385,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                         }
                     }
                     
-                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, statsFile, packer), solverData.getDataFile());
+                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, statsFile, packer, solveSettingsPane, this), solverData.getDataFile());
                 }
             }
         }
@@ -738,6 +741,8 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
 //</editor-fold>
     
     
+    
+    
     /*
         SOLVING CONTROLS
     */
@@ -745,24 +750,24 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     /**
      * Signalizes the solver to find a next state.
      */
-    private void nextState() {
+    private void nextState(boolean repaint) {
         VisualizationPanel visualPanel = getSelectedVisualizationPanel();
         if (visualPanel != null) {
             if (visualPanel.isSolutionFound()) {
                 if (solvingTimer.isRunning()) {
                     finishSolving();
                     
-                    JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                     
                     visualPanel.saveStats();
                 }
             } else {
                 if (visualPanel.isStillSolving()) {
-                    visualPanel.nextState();
+                    visualPanel.nextState(repaint);
                 } else {
                     if (solvingTimer.isRunning()) {
                         finishSolving();
-                        JOptionPane.showMessageDialog(this, "No solution has been found.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "No solution has been found.", "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
             }
@@ -783,11 +788,29 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
      * Signalizes the solver to start solving.
      */
     private void startSolving() {
-        toolBarStopButton.setEnabled(true);
-        toolBarPauseResumeButton.setEnabled(true);
-        toolBarPauseResumeButton.setActionCommand(PAUSE);
-        toolBarPauseResumeButton.setIcon(new ImageIcon(packer.getImage(ImagePacker.PAUSE)));
-        solvingTimer.start();
+        if (!solvingTimer.isRunning()) {
+            toolBarStopButton.setEnabled(true);
+            toolBarPauseResumeButton.setEnabled(true);
+            toolBarPauseResumeButton.setActionCommand(PAUSE);
+            toolBarPauseResumeButton.setIcon(new ImageIcon(packer.getImage(ImagePacker.PAUSE)));
+            solvingTimer.start();
+        } else {
+            // solve
+            solvingTimer.stop();
+            
+            VisualizationPanel visualPanel = getSelectedVisualizationPanel();
+            if (visualPanel != null) {
+                while (!visualPanel.isSolutionFound()) {
+                    if (!visualPanel.isStillSolving()) {
+                        break;
+                    }
+                    
+                    nextState(false);
+                }
+                
+                nextState(true);
+            }
+        }
     }
     
     /**
@@ -832,7 +855,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         toolBarPauseResumeButton.setEnabled(false);
     }
 //</editor-fold>
-    
+ 
     /**
      * Checks if the currently displayed panel is a VisualizationPanel and returns it.
      * @return currently displayed VisualizationPanel
@@ -848,6 +871,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         }
     }
 //</editor-fold>
+    
     
     
     
@@ -874,34 +898,47 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
 //</editor-fold>
     
     
+    
+    
     /*
-        FILE STRUCTURE PANEL LISTENRE METHODS
+        FILE STRUCTURE PANEL LISTENER METHODS
     */
+    
+    /**
+     * Deletes a file in the file structure.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Delete">
     public void delete() {
         TreePath path = fileStructPane.getClickedTreePath();
         if (path != null) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             DataFile data = (DataFile) node.getUserObject();
-
+            
             if (data.getFileType() == DataFile.DIRECTORY) {
                 JOptionPane.showMessageDialog(this, "Directory " + data.toString() + " cannot be deleted.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             } else {
                 int retVal = JOptionPane.showOptionDialog(this, "Do you want to delete " + data.toString() + "?", "Confirm delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
-
+                
                 if (retVal == 0) {
                     // delete the file
                     if (data.getDataFile().isDirectory())
                         deleteRecursively(data.getDataFile());
-                    else 
+                    else
                         data.getDataFile().delete();
-
+                    
                     // update file tree
                     fileStructPane.updateDirTree();
                 }
             }
         }
     }
+//</editor-fold>
     
+    /**
+     * Deletes recursively all folders and files under the given file's path.
+     * @param file file from which to start deleting
+     */
+    //<editor-fold defaultstate="collapsed" desc="Delete Recursively">
     private void deleteRecursively(File file) {
         for (File child : file.listFiles()) {
             if (child == null) {
@@ -913,16 +950,21 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 child.delete();
             }
         }
-
+        
         file.delete();
     }
+//</editor-fold>
     
+    /**
+     * Exports a statistics file.
+     */
+    //<editor-fold defaultstate="collapsed" desc="Export Stat File">
     public void exportSingleFile() {
         TreePath path = fileStructPane.getClickedTreePath();
         if (path != null) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             DataFile data = (DataFile) node.getUserObject();
-
+            
             if (data.getFileType() != DataFile.STAT) {
                 JOptionPane.showMessageDialog(this, "Cannot export this file.", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
             } else {
@@ -943,17 +985,17 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                         
                         StatsReader reader = new StatsReader(data.getDataFile());
                         StatsWriter writer = new StatsWriter(selectedFile);
-
+                        
                         if (reader.isEnabled() && writer.isEnabled()) {
                             writer.setUpCsv();
-
+                            
                             String line = reader.readLine();;
                             while (line != null) {
                                 line = line.replace(":", ",");
                                 writer.writeToCsvFile(line);
                                 line = reader.readLine();
                             }
-
+                            
                             reader.close();
                             writer.close();
                             
@@ -966,25 +1008,35 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
+//</editor-fold>
+    
     
     
     
     /*
         ACTION EVENT LISTENER METHODS
     */
+    
+    /**
+     * Method implemented for the ActionListener interface. Handles the solving command button actions.
+     * @param e action event triggering this method
+     */
+    //<editor-fold defaultstate="collapsed" desc="Action Performed">
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().contains("Tab")) {
             // closing a tab
             
             // get tab index
-            int tabIndex = Integer.parseInt(e.getActionCommand().replaceAll("Tab", ""));
- 
-            if (tabIndex >= 0) {
-                // check closing tab type
-                Component comp = displayPane.getComponentAt(tabIndex);
+            String tabName = e.getActionCommand().replaceAll("Tab", "");
+    
+            // check closing tab type
+            int tabIndex = displayPane.indexOfTab(tabName);
+            Component comp = displayPane.getComponentAt(tabIndex);
+                
+            if (comp != null) {
                 if (comp instanceof EditProblemPanel) {
-                    // if edit problem file, save progress
+                   // if edit problem file, save progress
                     EditProblemPanel editPanel = (EditProblemPanel) comp;
                     editPanel.save();
                 } else if (comp instanceof VisualizationPanel) {
@@ -994,11 +1046,18 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     toolBarPauseResumeButton.setEnabled(false);
                     toolBarNextButton.setEnabled(false);
                     toolBarPrevButton.setEnabled(false);
+
+                    // remove stats display
+                    solveSettingsPane.removeAll();
+                    solveSettingsPane.repaint();
+
+                    // and stop solving if not stopped already
+                    solvingTimer.stop();
                 }
-                
+
                 // then remove the panel
                 displayPane.removeTabAt(tabIndex);
-                
+
                 // also remove this action listener from source button
                 JButton closeButton = (JButton) e.getSource();
                 closeButton.removeActionListener(this);
@@ -1026,16 +1085,25 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         } else if (e.getActionCommand().equals(RESET)) {
             resetSolver();
         } else if (e.getActionCommand().equals(NEXT_STATE)) {
-            nextState();
+            nextState(true);
         } else if (e.getActionCommand().equals(PREV_STATE)) {
             prevState();
         }
     }
+//</editor-fold>
+    
+    
     
     
     /*
         MOUSE LISTENER METHODS
     */
+    
+    //<editor-fold defaultstate="collapsed" desc="Mouse Listener Methods">
+    /**
+     * Method implemented for the MouseListener interface. Handles the opening of appropriate panels when a file is double clicked.
+     * @param e mouse event triggering this method
+     */
     @Override
     public void mouseClicked(MouseEvent e) {
         // check if double clicked on file
@@ -1048,7 +1116,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 // get node at end of path
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
                 DataFile data = (DataFile) node.getUserObject();
-
+                
                 // check type of file that has been clicked
                 if (data.getFileType() == DataFile.PROBLEM) {
                     // problem file -> add a problem editor to display
@@ -1056,22 +1124,26 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 } else if (data.getFileType() == DataFile.SOLVER) {
                     // solver file  -> add a solver visualizator to display
                     loadSolverVisualizator(path, data);
+                } else if (data.getFileType() == DataFile.STAT) {
+                    // stat file -> add a statistics visualizator to display
+                    addPanelToDisplay(new StatisticsVisualPanel(data.getDataFile()), data.getDataFile());
                 }
             }
         }
     }
-
+    
     @Override
     public void mousePressed(MouseEvent e) {}
-
+    
     @Override
     public void mouseReleased(MouseEvent e) {}
-
+    
     @Override
     public void mouseEntered(MouseEvent e) {}
-
+    
     @Override
     public void mouseExited(MouseEvent e) {}
+//</editor-fold>
     
     
     
@@ -1079,6 +1151,12 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     /*
         COMPONENT LISTENER METHODS
     */
+    
+    //<editor-fold defaultstate="collapsed" desc="Component Listener Methods">
+    /**
+     * Method implemented for the ComponentListener interface. Handles display resizing.
+     * @param e container event triggering this method
+     */
     @Override
     public void componentAdded(ContainerEvent e) {
         pack();
@@ -1088,10 +1166,30 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             visualPanel.adjustSize();
         }
     }
-
+    
     @Override
     public void componentRemoved(ContainerEvent e) {}
+//</editor-fold>
     
+    
+    
+    
+    /*
+        CHANGE LISTENER METHODS
+    */
+    
+    /**
+     * Method implemented for the ChangeListener interface. Handles solving speed changes.
+     * @param e change event triggering the method
+     */
+    //<editor-fold defaultstate="collapsed" desc="State Changed">
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        JSpinner spinner = (JSpinner) e.getSource();
+        Integer value = (Integer) spinner.getValue();
+        solvingTimer.setDelay(800 / value);
+    }
+//</editor-fold>
                                                           
 
     /**

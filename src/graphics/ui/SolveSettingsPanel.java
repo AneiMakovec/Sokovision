@@ -5,6 +5,7 @@
  */
 package graphics.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.JPanel;
 
@@ -20,11 +21,9 @@ public class SolveSettingsPanel extends JPanel {
     }
     
     
-    
-    
-    
     @SuppressWarnings("unchecked")
     private void initComponents() {
-        setPreferredSize(new Dimension(300, 300));
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(300, 170));
     }
 }

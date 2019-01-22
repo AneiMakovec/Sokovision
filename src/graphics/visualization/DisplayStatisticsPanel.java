@@ -8,6 +8,9 @@ package graphics.visualization;
 import java.awt.GridLayout;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
 import problem.StatCollector;
 
 /**
@@ -18,14 +21,15 @@ public class DisplayStatisticsPanel extends JPanel {
     
     private StatCollector stats;
     
-    public DisplayStatisticsPanel(StatCollector stats) {
+    public DisplayStatisticsPanel(StatCollector stats, ChangeListener listener) {
         this.stats = stats;
-        initComponents();
+        initComponents(listener);
     }
     
     
     @SuppressWarnings("unchecked")
-    private void initComponents() {
+    private void initComponents(ChangeListener listener) {
+        JLabel solvingSpeedLabel = new JLabel("Solving speed:");
         JLabel timeLabel = new JLabel("Solving time:");
         JLabel movesExaminedLabel = new JLabel("States examined:");
         JLabel statesAlreadyExaminedLabel = new JLabel("States already examined:");
@@ -33,6 +37,7 @@ public class DisplayStatisticsPanel extends JPanel {
         JLabel deadlocksLabel = new JLabel("Deadlocks found:");
         JLabel statesInFringeLabel = new JLabel("States in fringe:");
         
+        spinner = new JSpinner();
         timeText = new JLabel(String.format("%.4f", stats.getTime()) + "s");
         movesExaminedText = new JLabel(Integer.toString(stats.getMovesExamined()));
         statesAlreadyExaminedText = new JLabel(Integer.toString(stats.getStatesAlreadySeen()));
@@ -40,8 +45,15 @@ public class DisplayStatisticsPanel extends JPanel {
         deadlocksText = new JLabel(Integer.toString(stats.getDeadlocksFound()));
         statesInFringeText = new JLabel(Integer.toString(stats.getStatesInFringe()));
         
-        setLayout(new GridLayout(6, 2));
+        // set up spinner
+        SpinnerNumberModel model = new SpinnerNumberModel(1, 1, 8, 1);
+        spinner.setModel(model);
+        spinner.addChangeListener(listener);
         
+        setLayout(new GridLayout(7, 2));
+        
+        add(solvingSpeedLabel);
+        add(spinner);
         add(timeLabel);
         add(timeText);
         add(movesExaminedLabel);
@@ -69,6 +81,7 @@ public class DisplayStatisticsPanel extends JPanel {
     
     
     // Variable declaration
+    private JSpinner spinner;
     private JLabel timeText;
     private JLabel movesExaminedText;
     private JLabel statesAlreadyExaminedText;

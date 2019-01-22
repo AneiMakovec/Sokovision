@@ -69,8 +69,8 @@ public class DisplayStateTreePanel extends JPanel implements MouseListener, Mous
     
     
     public void resizeTree() {
-        gridRect.x = 20;
-        gridRect.y = 20;
+        gridRect.x = getWidth() / 2;
+        gridRect.y = getHeight() / 2;
     }
     
     

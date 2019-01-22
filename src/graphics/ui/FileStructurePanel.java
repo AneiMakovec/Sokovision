@@ -62,8 +62,6 @@ public class FileStructurePanel extends JPanel implements MouseListener {
      */
     @SuppressWarnings("unchecked")
     private void initComponents(MouseListener listener) {
-        setPreferredSize(new Dimension(300, 500));
-        
         dirTree = new JTree();
         File rootFile = new File(dirPath);
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(new DataFile(rootFile, DataFile.DIRECTORY, null));
@@ -77,11 +75,12 @@ public class FileStructurePanel extends JPanel implements MouseListener {
         dirTree.setShowsRootHandles(true);
         dirTree.addMouseListener(listener);
         
-        JScrollPane scrollPane = new JScrollPane(dirTree);
-        scrollPane.setPreferredSize(getPreferredSize());
-        add(scrollPane, BorderLayout.CENTER);
-        
         updateDirTree();
+        
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.getViewport().add(dirTree);
+        scrollPane.setPreferredSize(new Dimension(300, 500));
+        add(scrollPane, BorderLayout.CENTER);
         
         addPopupMenu();
     }
