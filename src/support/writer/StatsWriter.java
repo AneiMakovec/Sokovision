@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import problem.StatCollector;
 import problem.State;
+import problem.Stats;
 
 /**
  *
@@ -51,19 +52,19 @@ public class StatsWriter {
         
             sb.append("Problem_name");
             sb.append(",");
-            sb.append("Crates");
-            sb.append(",");
+//            sb.append("Crates");
+//            sb.append(",");
             sb.append("Solving_time");
             sb.append(",");
-            sb.append("Solution_length");
+            sb.append("Solution_depth");
             sb.append(",");
             sb.append("States_examined");
             sb.append(",");
-            sb.append("States_already_seen");
+            sb.append("Duplicate_states");
             sb.append(",");
-            sb.append("States_in_fringe");
+            sb.append("Frontier_states");
             sb.append(",");
-            sb.append("Deadlocks");
+            sb.append("Deadlocks_found");
 
             writer.println(sb.toString());
         }
@@ -74,26 +75,44 @@ public class StatsWriter {
         if (isWritingStats) {
             StringBuilder sb = new StringBuilder();
 
-            sb.append(problemName);
-            sb.append(":");
-            sb.append(state.getCrates().size());
-            sb.append(":");
-            sb.append(statCollector.getTime());
-            sb.append(":");
-            sb.append(statCollector.getSolutionLength());
-            sb.append(":");
-            sb.append(statCollector.getMovesExamined());
-            sb.append(":");
-            sb.append(statCollector.getStatesAlreadySeen());
-            sb.append(":");
-            sb.append(statCollector.getStatesInFringe());
-            sb.append(":");
-            sb.append(statCollector.getDeadlocksFound());
+//            sb.append(problemName);
+//            sb.append(":");
+//            sb.append(state.getCrates().size());
+//            sb.append(":");
+//            sb.append(statCollector.getTime());
+//            sb.append(":");
+//            sb.append(statCollector.getSolutionLength());
+//            sb.append(":");
+//            sb.append(statCollector.getMovesExamined());
+//            sb.append(":");
+//            sb.append(statCollector.getStatesAlreadySeen());
+//            sb.append(":");
+//            sb.append(statCollector.getStatesInFringe());
+//            sb.append(":");
+//            sb.append(statCollector.getDeadlocksFound());
 
-            writer.println(sb.toString());
+            for (Stats stat : statCollector.getTimeStamp()) {
+                sb.append(problemName);
+                sb.append(":");
+                sb.append(stat.getTime());
+                sb.append(":");
+                sb.append(stat.getSolutionDepth());
+                sb.append(":");
+                sb.append(stat.getMovesExamined());
+                sb.append(":");
+                sb.append(stat.getStatesAlreadySeen());
+                sb.append(":");
+                sb.append(stat.getStatesInFringe());
+                sb.append(":");
+                sb.append(stat.getDeadlocksFound());
+                sb.append("\n");
+            }
+
+            writer.print(sb.toString());
             close();
         }
     }
+    
     
     public void writeToCsvFile(String line) {
         if (!isWritingStats)

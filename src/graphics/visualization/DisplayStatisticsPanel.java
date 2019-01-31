@@ -31,11 +31,11 @@ public class DisplayStatisticsPanel extends JPanel {
     private void initComponents(ChangeListener listener) {
         JLabel solvingSpeedLabel = new JLabel("Solving speed:");
         JLabel timeLabel = new JLabel("Solving time:");
-        JLabel movesExaminedLabel = new JLabel("States examined:");
-        JLabel statesAlreadyExaminedLabel = new JLabel("States already examined:");
+        JLabel movesExaminedLabel = new JLabel("States examined (green):");
+        JLabel statesAlreadyExaminedLabel = new JLabel("Duplicate states (yellow):");
         JLabel currentSolDepthLabel = new JLabel("Current solution depth:");
-        JLabel deadlocksLabel = new JLabel("Deadlocks found:");
-        JLabel statesInFringeLabel = new JLabel("States in fringe:");
+        JLabel deadlocksLabel = new JLabel("Deadlocks found (red):");
+        JLabel statesInFringeLabel = new JLabel("Frontier states (black):");
         
         spinner = new JSpinner();
         timeText = new JLabel(String.format("%.4f", stats.getTime()) + "s");
@@ -46,7 +46,7 @@ public class DisplayStatisticsPanel extends JPanel {
         statesInFringeText = new JLabel(Integer.toString(stats.getStatesInFringe()));
         
         // set up spinner
-        SpinnerNumberModel model = new SpinnerNumberModel(1, 1, 8, 1);
+        SpinnerNumberModel model = new SpinnerNumberModel(1, 1, 20, 1);
         spinner.setModel(model);
         spinner.addChangeListener(listener);
         
@@ -56,12 +56,12 @@ public class DisplayStatisticsPanel extends JPanel {
         add(spinner);
         add(timeLabel);
         add(timeText);
+        add(currentSolDepthLabel);
+        add(currentSolDepthText);
         add(movesExaminedLabel);
         add(movesExaminedText);
         add(statesAlreadyExaminedLabel);
         add(statesAlreadyExaminedText);
-        add(currentSolDepthLabel);
-        add(currentSolDepthText);
         add(deadlocksLabel);
         add(deadlocksText);
         add(statesInFringeLabel);

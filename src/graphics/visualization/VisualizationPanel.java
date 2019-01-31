@@ -45,10 +45,13 @@ public class VisualizationPanel extends JPanel {
     
     private final boolean toolBarButtonsState[] = new boolean[5];
     
+    private boolean done;
+    
     public VisualizationPanel(File solverFile, File problemFile, File statsFile, ImagePacker packer, SolveSettingsPanel settingsPanel, ChangeListener listener) {
         this.problemFile = problemFile;
         this.solverFile = solverFile;
         this.statsFile = statsFile;
+        this.done = true;
         initSolver();
         initComponents(packer, settingsPanel, listener);
     }
@@ -59,7 +62,7 @@ public class VisualizationPanel extends JPanel {
         // TODO
         
         layers = new JLayeredPane();
-        statePanel = new DisplayStatePanel(packer, grid, sokobanReader.getWidth(), sokobanReader.getHeight(), solver);
+        statePanel = new DisplayStatePanel(packer, grid, sokobanReader.getWidth(), sokobanReader.getHeight(), solver.getState());
         stateTreePanel = new DisplayStateTreePanel(solver);
         statisticsPanel = new DisplayStatisticsPanel(solver.getStats(), listener);
         
@@ -117,6 +120,11 @@ public class VisualizationPanel extends JPanel {
             }
         }
     }
+
+    public boolean isDone() {
+        return done;
+    }
+    
     
     
     
@@ -129,8 +137,10 @@ public class VisualizationPanel extends JPanel {
     }
     
     public void nextState(boolean repaint) {
+        done = false;
         solver.nextState();
         repaintState(repaint);
+        done = true;
     }
     
     public void prevState() {
@@ -187,11 +197,14 @@ public class VisualizationPanel extends JPanel {
     
     private void repaintState(boolean repaint) {
         if (repaint) {
-            statePanel.repaint();
+            statePanel.updateState(solver.getState());
             stateTreePanel.repaint();
         }
         
         statisticsPanel.updateStats();
+        
+        // store data with time
+        solver.getStats().makeTimeStamp();
     }
     
     

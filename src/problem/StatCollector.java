@@ -5,6 +5,8 @@
  */
 package problem;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author anei
@@ -19,6 +21,8 @@ public class StatCollector {
     private int statesInFringe;
     private int statesAlreadySeen;
     
+    private ArrayList<Stats> timeStamp;
+    
     public StatCollector() {
         this.time = 0;
         this.movesExamined = 0;
@@ -27,6 +31,8 @@ public class StatCollector {
         this.deadlocksFound = 0;
         this.statesInFringe = 0;
         this.statesAlreadySeen = 0;
+        
+        this.timeStamp = new ArrayList<>();
     }
 
     public double getTime() {
@@ -131,6 +137,21 @@ public class StatCollector {
     
     public void decreaseStatesAlreadySeen() {
         this.statesAlreadySeen--;
+    }
+
+    
+    
+    
+    public ArrayList<Stats> getTimeStamp() {
+        return timeStamp;
+    }
+    
+    
+    
+    
+    
+    public void makeTimeStamp() {
+        timeStamp.add(new Stats(getTime(), movesExamined, solutionDepth, deadlocksFound, statesInFringe, statesAlreadySeen));
     }
     
     

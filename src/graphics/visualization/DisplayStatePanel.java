@@ -17,6 +17,7 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.JPanel;
 import plugin.Solver;
 import problem.Node;
+import problem.State;
 
 /**
  *
@@ -43,13 +44,12 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
      * @param grid The problem grid.
      * @param gridWidth
      * @param gridHeight
-     * @param solver
+     * @param state
      */
-    public DisplayStatePanel(ImagePacker packer, Grid grid, int gridWidth, int gridHeight, Solver solver) {
+    public DisplayStatePanel(ImagePacker packer, Grid grid, int gridWidth, int gridHeight, Node state) {
         this.packer = packer;
         this.grid = grid;
-        this.state = solver.getState();
-        this.solver = solver;
+        this.state = state;
         this.gridRect = new GridRectangle(0, 0, gridWidth, gridHeight);
         initListeners();
     }
@@ -86,6 +86,19 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
         }
     }
     
+    public void updateState(Node newState) {
+        state = newState;
+        repaint();
+    }
+    
+    public State getCurrentState() {
+        return state.state;
+    }
+    
+    public void setCurrentState(State newState) {
+        state.state = newState;
+    }
+    
     
     private Position calcTilePos(Position pos) {
         int tileX = gridRect.x + (pos.getX() * tileSize);
@@ -99,9 +112,6 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     protected void paintComponent(Graphics g) {
         // call parent method
         super.paintComponent(g);
-        
-        // retrieve new state
-        state = solver.getState();
         
         // draw walls and free spaces
         for (Position pos : grid.getPositions()) {

@@ -11,7 +11,6 @@ package graphics.statistics;
  */
 public class StatData {
     
-    private final int numCrates;
     private double solvingTime;
     private long solutionLength;
     private long statesExamined;
@@ -21,18 +20,14 @@ public class StatData {
     
     
     
-    public StatData(int numCrates) {
-        this.numCrates = numCrates;
-        this.solvingTime = 0;
-        this.solutionLength = 0;
-        this.statesExamined = 0;
-        this.statesAlreadySeen = 0;
-        this.statesInFringe = 0;
-        this.deadlocksFound = 0;
-    }
-
-    public int getNumCrates() {
-        return numCrates;
+    public StatData(String[] data) {
+        parseData(data);
+//        this.solvingTime = 0;
+//        this.solutionLength = 0;
+//        this.statesExamined = 0;
+//        this.statesAlreadySeen = 0;
+//        this.statesInFringe = 0;
+//        this.deadlocksFound = 0;
     }
     
     public double getSolvingTime() {
@@ -124,38 +119,38 @@ public class StatData {
     }
     
     
-    public void parseData(String[] data) {
-        solvingTime = Double.parseDouble(data[2]);
-        solutionLength = Long.parseLong(data[3]);
-        statesExamined = Long.parseLong(data[4]);
-        statesAlreadySeen = Long.parseLong(data[5]);
-        statesInFringe = Long.parseLong(data[6]);
-        deadlocksFound = Long.parseLong(data[7]);
+    private void parseData(String[] data) {
+        solvingTime = Double.parseDouble(data[1]);
+        solutionLength = Long.parseLong(data[2]);
+        statesExamined = Long.parseLong(data[3]);
+        statesAlreadySeen = Long.parseLong(data[4]);
+        statesInFringe = Long.parseLong(data[5]);
+        deadlocksFound = Long.parseLong(data[6]);
     }
 
     
     
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + this.numCrates;
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final StatData other = (StatData) obj;
-        return this.numCrates == other.numCrates;
-    }
+//    @Override
+//    public int hashCode() {
+//        int hash = 7;
+//        hash = 97 * hash + this.numCrates;
+//        return hash;
+//    }
+//
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (this == obj) {
+//            return true;
+//        }
+//        if (obj == null) {
+//            return false;
+//        }
+//        if (getClass() != obj.getClass()) {
+//            return false;
+//        }
+//        final StatData other = (StatData) obj;
+//        return this.numCrates == other.numCrates;
+//    }
     
     
 }

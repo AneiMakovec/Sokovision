@@ -6,9 +6,6 @@
 package graphics.statistics;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -19,18 +16,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import support.reader.StatsReader;
 
@@ -50,11 +43,11 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
     
     private final File statFile;
     
-    private int currentNumCrates;
+    private String currentProblem;
     private String currentCommand;
     
     private final HashMap<String, ArrayList<StatData>> problemDataMap;
-    private String[] crateNumbers;
+    private String[] problemNames;
     
     public StatisticsVisualPanel(File statFile) {
         this.statFile = statFile;
@@ -72,13 +65,13 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
             
             // start reading
             String line = reader.readLine();
-            while (line != null) {
+            while (line != null && !line.equals("")) {
                 // split line in data chunks
                 String[] splitLine = line.split(":");
                 
                 // create a data object and collect data
-                StatData data = new StatData(Integer.parseInt(splitLine[1]));
-                data.parseData(splitLine);
+                StatData data = new StatData(splitLine);
+//                data.parseData(splitLine);
                 
                 // if data map does not already contain data for this problem
                 String problemName = splitLine[0].replace(".txt", "");
@@ -90,8 +83,8 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
                 // assign data to problem
                 problemDataMap.get(problemName).add(data);
                 
-                // also add number of crates to available crate numbers
-                set.add(splitLine[1]);
+                // also add problem name to available problems
+                set.add(problemName);
                 
                 // read next line
                 line = reader.readLine();
@@ -101,12 +94,12 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
             reader.close();
             
             // get available crate numbers
-            crateNumbers = new String[set.size()];
-            set.toArray(crateNumbers);
-            Arrays.sort(crateNumbers);
+            problemNames = new String[set.size()];
+            set.toArray(problemNames);
+            Arrays.sort(problemNames);
             
             if (set.size() > 0)
-                currentNumCrates = Integer.parseInt(crateNumbers[0]);
+                currentProblem = problemNames[0];
             
             currentCommand = ALL;
         }
@@ -120,13 +113,13 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
         // setup toolbar
         JToolBar toolbar = new JToolBar();
         
-        JLabel cratesNumText = new JLabel("Show problems with crates:");
+        JLabel cratesNumText = new JLabel("Show data for problem:");
         toolbar.add(cratesNumText);
         
-        cratesNumSelect = new JComboBox(crateNumbers);
-        cratesNumSelect.setSelectedIndex(0);
-        cratesNumSelect.addItemListener(this);
-        toolbar.add(cratesNumSelect);
+        problemSelect = new JComboBox(problemNames);
+        problemSelect.setSelectedIndex(0);
+        problemSelect.addItemListener(this);
+        toolbar.add(problemSelect);
         
         toolbar.addSeparator();
         
@@ -135,12 +128,12 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
         button.addActionListener(this);
         toolbar.add(button);
         
-        button = new JButton("Solving time");
-        button.setActionCommand(SOLVING_TIME);
-        button.addActionListener(this);
-        toolbar.add(button);
+//        button = new JButton("Solving time");
+//        button.setActionCommand(SOLVING_TIME);
+//        button.addActionListener(this);
+//        toolbar.add(button);
         
-        button = new JButton("Solution length");
+        button = new JButton("Solution depth");
         button.setActionCommand(SOLUTION_LENGTH);
         button.addActionListener(this);
         toolbar.add(button);
@@ -150,12 +143,12 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
         button.addActionListener(this);
         toolbar.add(button);
         
-        button = new JButton("States already seen");
+        button = new JButton("Duplicate states");
         button.setActionCommand(STATES_ALREADY_SEEN);
         button.addActionListener(this);
         toolbar.add(button);
         
-        button = new JButton("States in fringe");
+        button = new JButton("Frontier states");
         button.setActionCommand(STATES_IN_FRINGE);
         button.addActionListener(this);
         toolbar.add(button);
@@ -171,7 +164,7 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
         // setup chart panel
         dataset = new DefaultCategoryDataset();
         updateDataset();
-        JFreeChart chart = ChartFactory.createBarChart("Solving data", "Problem", "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
+        JFreeChart chart = ChartFactory.createLineChart("Solving data", "Time", "States", dataset, PlotOrientation.VERTICAL, true, true, false);
         chartPanel = new ChartPanel(chart);
         add(chartPanel, BorderLayout.CENTER);
     }
@@ -183,56 +176,47 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
     }
     
     private void updateDataset() {
-        String time = "SOLVING TIME";
-        String solutionLength = "SOLUTION LENGTH";
+//        String time = "SOLVING TIME";
+        String solutionLength = "SOLUTION DEPTH";
         String statesExamined = "STATES EXAMINED";
-        String statesAlreadySeen = "STATES ALREADY SEEN";
-        String statesInFringe = "STATES IN FRINGE";
+        String statesAlreadySeen = "DUPLICATE STATES";
+        String statesInFringe = "FRONTIER STATES";
         String deadlocksFound = "DEADLOCKS FOUND";
         
         dataset.clear();
         
-        for (String problem : problemDataMap.keySet()) {
-            for (StatData data : problemDataMap.get(problem)) {
-                if (data.getNumCrates() == currentNumCrates) {
-                    switch (currentCommand) {
-                        case ALL:
-                            dataset.addValue(data.getSolvingTime(), time, problem);
-                            dataset.addValue(data.getSolutionLength(), solutionLength, problem);
-                            dataset.addValue(data.getStatesExamined(), statesExamined, problem);
-                            dataset.addValue(data.getStatesAlreadySeen(), statesAlreadySeen, problem);
-                            dataset.addValue(data.getStatesInFringe(), statesInFringe, problem);
-                            dataset.addValue(data.getDeadlocksFound(), deadlocksFound, problem);
-                            break;
+        for (StatData data : problemDataMap.get(currentProblem)) {
+            switch (currentCommand) {
+                case ALL:
+                    dataset.addValue(data.getSolutionLength(), solutionLength, Double.toString(data.getSolvingTime()));
+                    dataset.addValue(data.getStatesExamined(), statesExamined, Double.toString(data.getSolvingTime()));
+                    dataset.addValue(data.getStatesAlreadySeen(), statesAlreadySeen, Double.toString(data.getSolvingTime()));
+                    dataset.addValue(data.getStatesInFringe(), statesInFringe, Double.toString(data.getSolvingTime()));
+                    dataset.addValue(data.getDeadlocksFound(), deadlocksFound, Double.toString(data.getSolvingTime()));
+                    break;
 
-                        case SOLVING_TIME:
-                            dataset.addValue(data.getSolvingTime(), time, problem);
-                            break;
+                case SOLUTION_LENGTH:
+                    dataset.addValue(data.getSolutionLength(), solutionLength, Double.toString(data.getSolvingTime()));
+                    break;
 
-                        case SOLUTION_LENGTH:
-                            dataset.addValue(data.getSolutionLength(), solutionLength, problem);
-                            break;
+                case STATES_EXAMINED:
+                    dataset.addValue(data.getStatesExamined(), statesExamined, Double.toString(data.getSolvingTime()));
+                    break;
 
-                        case STATES_EXAMINED:
-                            dataset.addValue(data.getStatesExamined(), statesExamined, problem);
-                            break;
+                case STATES_ALREADY_SEEN:
+                    dataset.addValue(data.getStatesAlreadySeen(), statesAlreadySeen, Double.toString(data.getSolvingTime()));
+                    break;
 
-                        case STATES_ALREADY_SEEN:
-                            dataset.addValue(data.getStatesAlreadySeen(), statesAlreadySeen, problem);
-                            break;
+                case STATES_IN_FRINGE:
+                    dataset.addValue(data.getStatesInFringe(), statesInFringe, Double.toString(data.getSolvingTime()));
+                    break;
 
-                        case STATES_IN_FRINGE:
-                            dataset.addValue(data.getStatesInFringe(), statesInFringe, problem);
-                            break;
+                case DEADLOCKS_FOUND:
+                    dataset.addValue(data.getDeadlocksFound(), deadlocksFound, Double.toString(data.getSolvingTime()));
+                    break;
 
-                        case DEADLOCKS_FOUND:
-                            dataset.addValue(data.getDeadlocksFound(), deadlocksFound, problem);
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
+                default:
+                break;
             }
         }
     }
@@ -256,13 +240,13 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
     */
     @Override
     public void itemStateChanged(ItemEvent e) {
-        currentNumCrates = Integer.parseInt((String)e.getItem());
+        currentProblem = (String)e.getItem();
         updateDisplay();
     }
     
     
     // Variable declaration
-    private JComboBox cratesNumSelect;
+    private JComboBox problemSelect;
     private ChartPanel chartPanel;
     private DefaultCategoryDataset dataset;
     // End of variable declaration
