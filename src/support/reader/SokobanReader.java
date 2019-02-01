@@ -107,6 +107,8 @@ public class SokobanReader {
                 h++;
                 height++;
             }
+            
+            reader.close();
         } catch (IOException e) {
             width = 0;
             height = 0;

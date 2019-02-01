@@ -20,7 +20,8 @@ public class DataFile {
     public static final int STAT = 3;
     public static final int CSV = 4;
     public static final int DIRECTORY = 5;
-    public static final int UNKNOWN = 6;
+    public static final int SOLUTION = 6;
+    public static final int UNKNOWN = 7;
     
     
     protected int fileType;

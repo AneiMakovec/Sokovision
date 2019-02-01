@@ -24,6 +24,7 @@ import solver.IDAStarSolver;
 import support.reader.SokobanReader;
 import support.reader.SolverReader;
 import support.reader.StatsReader;
+import support.writer.SolutionWriter;
 import support.writer.SolverWriter;
 import support.writer.StatsWriter;
 
@@ -36,6 +37,7 @@ public class VisualizationPanel extends JPanel {
     private File problemFile;
     private final File solverFile;
     private final File statsFile;
+    private final File solutionFile;
     
     private Solver solver;
     private Grid grid;
@@ -47,10 +49,11 @@ public class VisualizationPanel extends JPanel {
     
     private boolean done;
     
-    public VisualizationPanel(File solverFile, File problemFile, File statsFile, ImagePacker packer, SolveSettingsPanel settingsPanel, ChangeListener listener) {
+    public VisualizationPanel(File solverFile, File problemFile, File statsFile, File solutionFile, ImagePacker packer, SolveSettingsPanel settingsPanel, ChangeListener listener) {
         this.problemFile = problemFile;
         this.solverFile = solverFile;
         this.statsFile = statsFile;
+        this.solutionFile = solutionFile;
         this.done = true;
         initSolver();
         initComponents(packer, settingsPanel, listener);
@@ -149,9 +152,14 @@ public class VisualizationPanel extends JPanel {
     }
     
     public void saveStats() {
-        StatsWriter writer = new StatsWriter(statsFile);
-        if (writer.isEnabled()) {
-            writer.writeToStatFile(problemFile.getName(), solver.getStats(), state);
+        StatsWriter statWriter = new StatsWriter(statsFile);
+        if (statWriter.isEnabled()) {
+            statWriter.writeToStatFile(problemFile.getName(), solver.getStats(), state);
+        }
+        
+        SolutionWriter solutionWriter = new SolutionWriter(solutionFile);
+        if (solutionWriter.isEnabled()) {
+            solutionWriter.write(problemFile.getName(), solver.getStats().getSolution());
         }
     }
     

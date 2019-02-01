@@ -27,7 +27,7 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     
     private final ImagePacker packer;
     
-    private final Grid grid;
+    private Grid grid;
     private Solver solver;
     private Node state;
     
@@ -89,6 +89,15 @@ public class DisplayStatePanel extends JPanel implements MouseListener, MouseMot
     public void updateState(Node newState) {
         state = newState;
         repaint();
+    }
+    
+    public void updateGridSize(int gridWidth, int gridHeight) {
+        gridRect.width = gridWidth;
+        gridRect.height = gridHeight;
+    }
+    
+    public void updateGrid(Grid grid) {
+        this.grid = grid;
     }
     
     public State getCurrentState() {

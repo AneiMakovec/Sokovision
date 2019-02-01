@@ -93,7 +93,7 @@ public class StatisticsVisualPanel extends JPanel implements ActionListener, Ite
             // finish reading
             reader.close();
             
-            // get available crate numbers
+            // get available problems
             problemNames = new String[set.size()];
             set.toArray(problemNames);
             Arrays.sort(problemNames);

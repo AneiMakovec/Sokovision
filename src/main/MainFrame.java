@@ -12,6 +12,7 @@ import graphics.ui.FileStructurePanel;
 import graphics.ui.SolveSettingsPanel;
 import graphics.ui.support.DataFile;
 import graphics.ui.support.Tab;
+import graphics.visualization.SolutionVisualizationPanel;
 import graphics.visualization.VisualizationPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -82,9 +83,9 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
     
     private final String PROJECTS_DIR_PATH = System.getProperty("user.home") + File.separator + "SokovisionProjects";
     
-    private final String PROBLEMS_SUBDIR_PATH = File.separator + "Problems";
-    private final String SOLVERS_SUBDIR_PATH = File.separator + "Solvers";
-    private final String STATS_SUBDIR_PATH = File.separator + "Statistics";
+    public static final String PROBLEMS_SUBDIR_PATH = File.separator + "Problems";
+    public static final String SOLVERS_SUBDIR_PATH = File.separator + "Solvers";
+    public static final String STATS_SUBDIR_PATH = File.separator + "Statistics";
 
     /**
      * Creates new frame MainFrame
@@ -333,7 +334,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             displayPane.setTabComponentAt(index, tab);
             
             // if the panel added is a visualization panel also enable the tool bar buttons
-            if (panel instanceof VisualizationPanel) {
+            if (panel instanceof VisualizationPanel || panel instanceof SolutionVisualizationPanel) {
                 toolBarStartButton.setEnabled(true);
                 toolBarResetButton.setEnabled(true);
                 toolBarNextButton.setEnabled(true);
@@ -385,7 +386,21 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                         }
                     }
                     
-                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, statsFile, packer, solveSettingsPane, this), solverData.getDataFile());
+                    // find or create a new solution file for this solver
+                    String solutionFileName = solverData.toString();
+                    solutionFileName = solutionFileName.replace(".slvr", ".sol");
+                    
+                    File solutionFile = new File(projectData.getDataFile().getAbsolutePath() + STATS_SUBDIR_PATH + File.separator + solutionFileName);
+                    if (!solutionFile.exists()) {
+                        try {
+                            solutionFile.createNewFile();
+                            fileStructPane.updateDirTree();
+                        } catch (IOException e) {
+                            JOptionPane.showMessageDialog(this, "Could not create solution file for solver" + solverData.toString() + ".", "Warning", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+                    
+                    addPanelToDisplay(new VisualizationPanel(solverData.getDataFile(), problemFile, statsFile, solutionFile, packer, solveSettingsPane, this), solverData.getDataFile());
                 }
             }
         }
@@ -751,19 +766,27 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
      * Signalizes the solver to find a next state.
      */
     private void nextState(boolean repaint) {
-        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-        if (visualPanel != null && visualPanel.isDone()) {
-            if (visualPanel.isSolutionFound()) {
+        JPanel visualPanel = getSelectedVisualizationPanel();
+        VisualizationPanel vPanel = null;
+        SolutionVisualizationPanel svPanel = null;
+        if (visualPanel instanceof VisualizationPanel) {
+            vPanel = (VisualizationPanel) visualPanel;
+        } else if (visualPanel instanceof SolutionVisualizationPanel) {
+            svPanel = (SolutionVisualizationPanel) visualPanel;
+        }
+        
+        if (vPanel != null && vPanel.isDone()) {
+            if (vPanel.isSolutionFound()) {
                 if (solvingTimer.isRunning()) {
                     finishSolving();
                     
-                    JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + vPanel.getSolution(), "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                     
-                    visualPanel.saveStats();
+                    vPanel.saveStats();
                 }
             } else {
-                if (visualPanel.isStillSolving()) {
-                    visualPanel.nextState(repaint);
+                if (vPanel.isStillSolving()) {
+                    vPanel.nextState(repaint);
                 } else {
                     if (solvingTimer.isRunning()) {
                         finishSolving();
@@ -771,38 +794,51 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     }
                 }
             }
-        }
-    }
-    
-    
-    private void nextStateSolveImediately() {
-        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-        if (visualPanel != null) {
-            if (visualPanel.isSolutionFound()) {
-                finishSolving();
-                    
-                JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                    
-                visualPanel.saveStats();
+        } else if (svPanel != null) {
+            if (!svPanel.hasFinished()) {
+                svPanel.nextStep();
             } else {
-                if (visualPanel.isStillSolving()) {
-                    visualPanel.nextState(true);
-                } else {
+                if (solvingTimer.isRunning()) {
                     finishSolving();
-                    JOptionPane.showMessageDialog(this, "No solution has been found.", "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Solution has ended.", "Solution ended", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         }
     }
+    
+    
+//    private void nextStateSolveImediately() {
+//        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
+//        if (visualPanel != null) {
+//            if (visualPanel.isSolutionFound()) {
+//                finishSolving();
+//                    
+//                JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+//                    
+//                visualPanel.saveStats();
+//            } else {
+//                if (visualPanel.isStillSolving()) {
+//                    visualPanel.nextState(true);
+//                } else {
+//                    finishSolving();
+//                    JOptionPane.showMessageDialog(this, "No solution has been found.", "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+//                }
+//            }
+//        }
+//    }
 
     
     /**
      * Signalizes the solver to restore a previous state.
      */
     private void prevState() {
-        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-        if (visualPanel != null) {
-            visualPanel.prevState();
+        JPanel visualPanel = getSelectedVisualizationPanel();
+        if (visualPanel instanceof VisualizationPanel) {
+            VisualizationPanel vPanel = (VisualizationPanel) visualPanel;
+            vPanel.prevState();
+        } else {
+            SolutionVisualizationPanel svPanel = (SolutionVisualizationPanel) visualPanel;
+            svPanel.prevStep();
         }
     }
     
@@ -820,26 +856,26 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             // solve imediately
             solvingTimer.stop();
             
-            VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-            if (visualPanel != null) {
-                java.awt.EventQueue.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        while (true) {
-                            if (visualPanel.isSolutionFound()) {
-                                break;
-                            } else {
-                                if (!visualPanel.isStillSolving()) {
-                                    break;
-                                }
-                            }
-
-                            nextStateSolveImediately();
-                        }
-
-//                        nextState(true);
-                    }
-                });
+//            VisualizationPanel visualPanel = getSelectedVisualizationPanel();
+//            if (visualPanel != null) {
+//                java.awt.EventQueue.invokeLater(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        while (true) {
+//                            if (visualPanel.isSolutionFound()) {
+//                                break;
+//                            } else {
+//                                if (!visualPanel.isStillSolving()) {
+//                                    break;
+//                                }
+//                            }
+//
+//                            nextStateSolveImediately();
+//                        }
+//
+////                        nextState(true);
+//                    }
+//                });
                 
 //                while (!visualPanel.isSolutionFound()) {
 //                    if (!visualPanel.isStillSolving()) {
@@ -850,7 +886,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
 //                }
 //                
 //                nextState(true);
-            }
+//            }
         }
     }
     
@@ -881,9 +917,13 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
      */
     private void resetSolver() {
         solvingTimer.stop();
-        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-        if (visualPanel != null) {
-            visualPanel.resetSolver();
+        JPanel visualPanel = getSelectedVisualizationPanel();
+        if (visualPanel instanceof VisualizationPanel) {
+            VisualizationPanel vPanel = (VisualizationPanel) visualPanel;
+            vPanel.resetSolver();
+        } else if (visualPanel instanceof SolutionVisualizationPanel) {
+            SolutionVisualizationPanel svPanel = (SolutionVisualizationPanel) visualPanel;
+            svPanel.stop();
         }
     }
     
@@ -902,10 +942,13 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
      * @return currently displayed VisualizationPanel
      */
     //<editor-fold defaultstate="collapsed" desc="Get Selected Visualization Panel">
-    private VisualizationPanel getSelectedVisualizationPanel() {
+    private JPanel getSelectedVisualizationPanel() {
         Component comp = displayPane.getSelectedComponent();
         if (comp instanceof VisualizationPanel) {
             VisualizationPanel visualPanel = (VisualizationPanel) comp;
+            return visualPanel;
+        } else if (comp instanceof SolutionVisualizationPanel) {
+            SolutionVisualizationPanel visualPanel = (SolutionVisualizationPanel) comp;
             return visualPanel;
         } else {
             return null;
@@ -1087,6 +1130,7 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     toolBarPauseResumeButton.setEnabled(false);
                     toolBarNextButton.setEnabled(false);
                     toolBarPrevButton.setEnabled(false);
+                    toolBarResetButton.setEnabled(false);
 
                     // remove stats display
                     solveSettingsPane.removeAll();
@@ -1097,6 +1141,17 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                     
                     // reset the timer
                     solvingTimer.setDelay(800);
+                } else if (comp instanceof SolutionVisualizationPanel) {
+                    // if solution visualization panel, disable tool bar buttons
+                    toolBarStartButton.setEnabled(false);
+                    toolBarStopButton.setEnabled(false);
+                    toolBarPauseResumeButton.setEnabled(false);
+                    toolBarNextButton.setEnabled(false);
+                    toolBarPrevButton.setEnabled(false);
+                    toolBarResetButton.setEnabled(false);
+                    
+                    // stop displaying solution if not stopped already
+                    solvingTimer.stop();
                 }
 
                 // then remove the panel
@@ -1171,6 +1226,9 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
                 } else if (data.getFileType() == DataFile.STAT) {
                     // stat file -> add a statistics visualizator to display
                     addPanelToDisplay(new StatisticsVisualPanel(data.getDataFile()), data.getDataFile());
+                } else if (data.getFileType() == DataFile.SOLUTION) {
+                    // solution file -> add a solution visualizator to display
+                    addPanelToDisplay(new SolutionVisualizationPanel(data.getDataFile(), packer), data.getDataFile());
                 }
             }
         }

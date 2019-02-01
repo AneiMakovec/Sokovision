@@ -122,6 +122,8 @@ public class FileStructurePanel extends JPanel implements MouseListener {
                     child = new DefaultMutableTreeNode(new DataFile(file, DataFile.STAT, new ImageIcon(packer.getImage(ImagePacker.STAT_FILE))));
                 } else if (file.getName().endsWith(".csv")) {
                     child = new DefaultMutableTreeNode(new DataFile(file, DataFile.CSV, new ImageIcon(packer.getImage(ImagePacker.CSV_FILE))));
+                } else if (file.getName().endsWith(".sol")) {
+                    child = new DefaultMutableTreeNode(new DataFile(file, DataFile.SOLUTION, new ImageIcon(packer.getImage(ImagePacker.STAT_FILE))));
                 } else {
                     child = new DefaultMutableTreeNode(new DataFile(file, DataFile.UNKNOWN, new ImageIcon(packer.getImage(ImagePacker.UNKNOWN_FILE))));;
                 }
