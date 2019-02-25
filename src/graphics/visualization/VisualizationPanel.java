@@ -192,6 +192,12 @@ public class VisualizationPanel extends JPanel {
     }
     
     public boolean isSolutionFound() {
+//        if (solver.isSolutionFound()) {
+//            solver.getStats().makeTimeStamp();
+//            return true;
+//        } else {
+//            return false;
+//        }
         return solver.isSolutionFound();
     }
     

@@ -123,7 +123,11 @@ public class Problem {
     private void scanGrid() {
         for (Position pos : grid.getPositions()) {
             checkCornerAt(pos);
-            checkWallLineAt(pos);
+        }
+        
+        for (Position pos : grid.getPositions()) {
+            if (!grid.isGoal(pos))
+                checkWallLineAt(pos);
         }
     }
     
@@ -204,7 +208,7 @@ public class Problem {
         Space space = grid.getSpace(position);
         
         if (space.isDead || space.type == Space.WALL) {
-            return true;
+            return !grid.isGoal(position);
         } else {
             // check if right neighbour is wall
             Space neighbour = grid.getSpace(position.getRight());
@@ -227,7 +231,7 @@ public class Problem {
         Space space = grid.getSpace(position);
         
         if (space.isDead || space.type == Space.WALL) {
-            return true;
+            return !grid.isGoal(position);
         } else {
             // check if right neighbour is wall
             Space neighbour = grid.getSpace(position.getRight());
@@ -250,7 +254,7 @@ public class Problem {
         Space space = grid.getSpace(position);
         
         if (space.isDead || space.type == Space.WALL) {
-            return true;
+            return !grid.isGoal(position);
         } else {
             // check if up neighbour is wall
             Space neighbour = grid.getSpace(position.getUp());
@@ -273,7 +277,7 @@ public class Problem {
         Space space = grid.getSpace(position);
         
         if (space.isDead || space.type == Space.WALL) {
-            return true;
+            return !grid.isGoal(position);
         } else {
             // check if up neighbour is wall
             Space neighbour = grid.getSpace(position.getUp());
