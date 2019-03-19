@@ -336,7 +336,6 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             // if the panel added is a visualization panel also enable the tool bar buttons
             if (panel instanceof VisualizationPanel || panel instanceof SolutionVisualizationPanel) {
                 toolBarStartButton.setEnabled(true);
-                toolBarResetButton.setEnabled(true);
                 toolBarNextButton.setEnabled(true);
                 toolBarPrevButton.setEnabled(true);
             }
@@ -805,27 +804,6 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
             }
         }
     }
-    
-    
-//    private void nextStateSolveImediately() {
-//        VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-//        if (visualPanel != null) {
-//            if (visualPanel.isSolutionFound()) {
-//                finishSolving();
-//                    
-//                JOptionPane.showMessageDialog(this, "Solution has been found!\nSolution: " + visualPanel.getSolution(), "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-//                    
-//                visualPanel.saveStats();
-//            } else {
-//                if (visualPanel.isStillSolving()) {
-//                    visualPanel.nextState(true);
-//                } else {
-//                    finishSolving();
-//                    JOptionPane.showMessageDialog(this, "No solution has been found.", "Solving completed", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-//                }
-//            }
-//        }
-//    }
 
     
     /**
@@ -847,46 +825,13 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
      */
     private void startSolving() {
         if (!solvingTimer.isRunning()) {
+            toolBarStartButton.setEnabled(false);
             toolBarStopButton.setEnabled(true);
             toolBarPauseResumeButton.setEnabled(true);
+            toolBarResetButton.setEnabled(true);
             toolBarPauseResumeButton.setActionCommand(PAUSE);
             toolBarPauseResumeButton.setIcon(new ImageIcon(packer.getImage(ImagePacker.PAUSE)));
             solvingTimer.start();
-        } else {
-            // solve imediately
-            solvingTimer.stop();
-            
-//            VisualizationPanel visualPanel = getSelectedVisualizationPanel();
-//            if (visualPanel != null) {
-//                java.awt.EventQueue.invokeLater(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        while (true) {
-//                            if (visualPanel.isSolutionFound()) {
-//                                break;
-//                            } else {
-//                                if (!visualPanel.isStillSolving()) {
-//                                    break;
-//                                }
-//                            }
-//
-//                            nextStateSolveImediately();
-//                        }
-//
-////                        nextState(true);
-//                    }
-//                });
-                
-//                while (!visualPanel.isSolutionFound()) {
-//                    if (!visualPanel.isStillSolving()) {
-//                        break;
-//                    }
-//                    
-//                    nextState(false);
-//                }
-//                
-//                nextState(true);
-//            }
         }
     }
     
@@ -916,7 +861,6 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
      * Signalizes the solver to reset the data.
      */
     private void resetSolver() {
-        solvingTimer.stop();
         JPanel visualPanel = getSelectedVisualizationPanel();
         if (visualPanel instanceof VisualizationPanel) {
             VisualizationPanel vPanel = (VisualizationPanel) visualPanel;
@@ -934,6 +878,8 @@ public class MainFrame extends JFrame implements MouseListener, ActionListener, 
         solvingTimer.stop();
         toolBarStopButton.setEnabled(false);
         toolBarPauseResumeButton.setEnabled(false);
+        toolBarResetButton.setEnabled(false);
+        toolBarStartButton.setEnabled(true);
     }
 //</editor-fold>
  
