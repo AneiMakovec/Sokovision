@@ -2,7 +2,7 @@
 
 Sokovision is an application for visualizing the solving of Sokoban problems using multiple solving algorithms.
 
-WARRNING: work in progress!
+WARNING: work in progress!
 
 ## Prerequisites
 
