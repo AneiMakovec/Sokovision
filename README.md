@@ -2,6 +2,8 @@
 
 Sokovision is an application for visualizing the solving of Sokoban problems using multiple solving algorithms.
 
+WARRNING: work in progress!
+
 ## Prerequisites
 
 To use this application you will need [Java](https://www.java.com/en/) and [Maven](http://maven.apache.org/download.cgi), a project management tool, installed on your system.
